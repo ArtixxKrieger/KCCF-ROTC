@@ -7,6 +7,7 @@ import {
   Boxes,
   ClipboardCheck,
   FileText,
+  History,
   LayoutDashboard,
   Menu,
   PackageCheck,
@@ -15,6 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CommandPalette } from "@/components/CommandPalette";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
@@ -24,6 +27,7 @@ const navItems = [
   { href: "/requests", label: "Requests", icon: ClipboardCheck },
   { href: "/issuances", label: "Issuance & Returns", icon: Box },
   { href: "/reports", label: "Reports", icon: FileText },
+  { href: "/audit", label: "Audit Log", icon: History },
   { href: "/users", label: "User Management", icon: Users },
 ];
 
@@ -156,6 +160,8 @@ export function DashboardShell({
             </div>
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <CommandPalette />
+            <NotificationBell />
             <ThemeToggle />
             <div className="hidden text-right sm:block">
               <div className="text-xs font-bold text-foreground">

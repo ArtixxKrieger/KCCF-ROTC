@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRealtimeClient } from "@neon/realtime/client";
 import type { SealedLiveQuery } from "@neon/realtime/client";
 import {
@@ -12,6 +12,20 @@ import {
   Clock3,
   Package,
 } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { api } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { Transaction } from "@/lib/types";
@@ -52,6 +66,16 @@ const emptyStats: Stats = {
   overdue: 0,
 };
 
+const PIE_COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#a855f7", "#14b8a6"];
+
+const tooltipStyle = {
+  background: "var(--surface)",
+  color: "var(--foreground)",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  fontSize: 12,
+};
+
 function computeStats(rows: LiveRow[], pending: number, overdue: number): Stats {
   return {
     total: rows.reduce((sum, item) => sum + Number(item.quantity), 0),
@@ -68,8 +92,10 @@ function computeStats(rows: LiveRow[], pending: number, overdue: number): Stats 
 export default function DashboardPage() {
   const [items, setItems] = useState<LiveRow[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<Stats>(emptyStats);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState<Date | null>(null);
 
   const clientRef = useRef<ReturnType<typeof createRealtimeClient> | null>(null);
   const subRef = useRef<{
@@ -102,11 +128,14 @@ export default function DashboardPage() {
           stats: Stats;
           inventory: LiveRow[];
           recentTransactions: Transaction[];
+          transactions: Transaction[];
         }>("/api/dashboard");
         if (cancelled) return;
         setItems(data.inventory);
         setTransactions(data.recentTransactions);
+        setAllTransactions(data.transactions);
         setStats(data.stats);
+        setNow(new Date());
       } catch (error) {
         console.error("Dashboard load failed", error);
       } finally {
@@ -153,6 +182,44 @@ export default function DashboardPage() {
     };
   }, [refreshSealed]);
 
+  const categoryData = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((item) =>
+      map.set(item.category, (map.get(item.category) ?? 0) + Number(item.quantity)),
+    );
+    return [...map.entries()]
+      .map(([category, count]) => ({ category, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [items]);
+
+  const trendData = useMemo(() => {
+    const buckets: { day: string; issued: number; received: number }[] = [];
+    if (!now) return buckets;
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      buckets.push({ day: d.toISOString().slice(0, 10), issued: 0, received: 0 });
+    }
+    const byDay = new Map(buckets.map((b) => [b.day, b]));
+    allTransactions.forEach((t) => {
+      const day = new Date(t.created_at).toISOString().slice(0, 10);
+      const bucket = byDay.get(day);
+      if (!bucket) return;
+      if (t.transaction_type === "Issuance") bucket.issued += Number(t.quantity);
+      if (t.transaction_type === "Receiving") bucket.received += Number(t.quantity);
+    });
+    return buckets.map((b) => ({ day: b.day.slice(5), issued: b.issued, received: b.received }));
+  }, [allTransactions, now]);
+
+  const statusData = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((item) =>
+      map.set(item.status, (map.get(item.status) ?? 0) + Number(item.quantity)),
+    );
+    return [...map.entries()].map(([name, value]) => ({ name, value }));
+  }, [items]);
+
   const cards = [
     { label: "Total Inventory", value: stats.total, icon: Boxes, tint: "text-info bg-info-bg" },
     { label: "Available", value: stats.available, icon: Package, tint: "text-success bg-success-bg" },
@@ -168,15 +235,13 @@ export default function DashboardPage() {
     <>
       {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
-              Command Overview
-            </div>
-            <h1 className="mt-1 text-2xl font-bold text-foreground">
-              Logistics Dashboard
-            </h1>
+        <div className="mb-6">
+          <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
+            Command Overview
           </div>
+          <h1 className="mt-1 text-2xl font-bold text-foreground">
+            Logistics Dashboard
+          </h1>
         </div>
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
@@ -198,6 +263,93 @@ export default function DashboardPage() {
             );
           })}
         </section>
+
+        {items.length > 0 && (
+          <>
+            <section className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+              <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="font-bold text-foreground">Activity — 14 Days</h2>
+                  <div className="flex items-center gap-4 text-xs text-muted">
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#22c55e]" /> Received
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#f59e0b]" /> Issued
+                    </span>
+                  </div>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="received" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="issued" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" />
+                      <XAxis dataKey="day" tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Area type="monotone" dataKey="received" stroke="#22c55e" fill="url(#received)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="issued" stroke="#f59e0b" fill="url(#issued)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+                <h2 className="mb-2 font-bold text-foreground">Status Distribution</h2>
+                <div className="h-48 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={48} outerRadius={72} paddingAngle={2} stroke="none">
+                        {statusData.map((_, index) => (
+                          <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={tooltipStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <ul className="mt-2 space-y-1.5">
+                  {statusData.map((entry, index) => (
+                    <li key={entry.name} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-2 text-muted">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ background: PIE_COLORS[index % PIE_COLORS.length] }}
+                        />
+                        {entry.name}
+                      </span>
+                      <span className="font-semibold text-foreground">{entry.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+
+            <section className="mt-6 rounded-xl border border-border bg-surface p-5 shadow-sm">
+              <h2 className="mb-4 font-bold text-foreground">Stock by Category</h2>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.15)" vertical={false} />
+                    <XAxis dataKey="category" tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} interval={0} angle={-12} textAnchor="end" height={46} />
+                    <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(128,128,128,0.08)" }} />
+                    <Bar dataKey="count" fill="#22c55e" radius={[4, 4, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+          </>
+        )}
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_1fr]">
           <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">

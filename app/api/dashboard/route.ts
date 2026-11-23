@@ -11,9 +11,10 @@ type InventoryRow = {
 
 export async function GET() {
   try {
-    const [inventory, transactions, pending, overdue] = await Promise.all([
+    const [inventory, transactions, allTransactions, pending, overdue] = await Promise.all([
       sql`select * from inventory order by name`,
       sql`select * from transactions order by created_at desc limit 6`,
+      sql`select * from transactions where created_at > now() - interval '60 days' order by created_at`,
       sql`select count(*)::int as count from requests where status = 'Pending'`,
       sql`select count(*)::int as count from issuances where due_at < now() and status in ('Issued', 'Overdue')`,
     ]);
@@ -34,7 +35,7 @@ export async function GET() {
       overdue: Number((overdue as { count: string | number }[])[0]?.count ?? 0),
     };
 
-    return ok({ stats, inventory: rows, recentTransactions: transactions });
+    return ok({ stats, inventory: rows, recentTransactions: transactions, transactions: allTransactions });
   } catch (error) {
     return fail((error as Error).message, 500);
   }

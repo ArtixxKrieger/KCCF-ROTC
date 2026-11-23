@@ -43,7 +43,11 @@ export default function InventoryPage() {
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 0);
+    const timer = window.setTimeout(() => {
+      const query = new URLSearchParams(window.location.search).get("q");
+      if (query) setSearch(query);
+      void load();
+    }, 0);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
