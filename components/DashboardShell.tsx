@@ -86,6 +86,9 @@ export function DashboardShell({
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+          <div className="mb-3 md:hidden">
+            <NotificationBell variant="inline" />
+          </div>
           <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
             Operations
           </div>
@@ -159,17 +162,19 @@ export function DashboardShell({
               Command &amp; Control Center
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-3">
-            <CommandPalette />
-            <NotificationBell />
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="hidden items-center gap-3 md:flex">
+              <CommandPalette />
+              <NotificationBell />
+            </div>
             <ThemeToggle />
-            <div className="hidden text-right sm:block">
+            <div className="hidden text-right lg:block">
               <div className="text-xs font-bold text-foreground">
                 Jordan Blake
               </div>
               <div className="text-[10px] text-muted">Supply Officer</div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground sm:flex">
               JB
             </div>
           </div>
