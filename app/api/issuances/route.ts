@@ -1,6 +1,8 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 import { text, optionalText, int } from "@/lib/sanitize";
+import { requirePermission, guardResponse } from "@/lib/guard";
+import { logAudit } from "@/lib/audit";
 
 
 export async function GET() {
@@ -14,6 +16,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const actor = await requirePermission("issuance:write");
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -39,8 +42,15 @@ export async function POST(request: Request) {
         'Supply Officer'::text
       )
     `;
+    await logAudit({
+      actor,
+      action: "issuance.create",
+      entity: "issuance",
+      entityId: String((row as { id: string }).id),
+      details: { inventory_id, issued_to, quantity },
+    });
     return ok(row, { status: 201 });
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }

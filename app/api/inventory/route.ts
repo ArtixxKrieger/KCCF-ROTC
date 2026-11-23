@@ -8,6 +8,8 @@ import {
   INVENTORY_STATUS,
   ITEM_TYPES,
 } from "@/lib/sanitize";
+import { requirePermission, guardResponse } from "@/lib/guard";
+import { logAudit } from "@/lib/audit";
 
 
 export async function GET() {
@@ -21,6 +23,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const actor = await requirePermission("inventory:write");
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -64,8 +67,15 @@ export async function POST(request: Request) {
       )
       returning *
     `;
+    await logAudit({
+      actor,
+      action: "inventory.create",
+      entity: "inventory",
+      entityId: String((row as { id: string }).id),
+      details: { name, category, quantity },
+    });
     return ok(row, { status: 201 });
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }

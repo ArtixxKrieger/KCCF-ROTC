@@ -68,8 +68,6 @@ export type AppUser = {
   full_name: string;
   email: string;
   role: "Admin" | "Supply Officer" | "Personnel";
-  department: string | null;
-  rank: string | null;
   active: boolean;
   created_at: string;
 };

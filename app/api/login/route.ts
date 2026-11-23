@@ -4,6 +4,8 @@ import { ok, fail } from "@/lib/http";
 import { verifyPassword } from "@/lib/password";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession, type SessionUser } from "@/lib/session";
 import { email, text } from "@/lib/sanitize";
+import { logAudit } from "@/lib/audit";
+import { rateLimit, clientKey, tooMany } from "@/lib/rate-limit";
 
 type UserRow = {
   id: string;
@@ -16,6 +18,9 @@ type UserRow = {
 
 export async function POST(request: Request) {
   try {
+    const limit = await rateLimit(await clientKey(request, "login"), 5, 300);
+    if (!limit.allowed) return tooMany(limit.retryAfter);
+
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -41,7 +46,16 @@ export async function POST(request: Request) {
         ? await verifyPassword(password, row.password_hash)
         : false;
 
-    if (!valid) return fail("Invalid email or password", 401);
+    if (!valid) {
+      await logAudit({
+        actor: null,
+        action: "login.failed",
+        entity: "user",
+        entityId: row?.id ?? null,
+        details: { email: userEmail },
+      });
+      return fail("Invalid email or password", 401);
+    }
 
     const sessionUser: SessionUser = {
       id: row.id,
@@ -57,6 +71,13 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: SESSION_MAX_AGE,
+    });
+
+    await logAudit({
+      actor: sessionUser,
+      action: "login.success",
+      entity: "user",
+      entityId: sessionUser.id,
     });
 
     return ok(sessionUser);

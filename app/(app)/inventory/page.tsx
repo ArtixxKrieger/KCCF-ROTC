@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Edit3, Plus, Search, Trash2, X } from "lucide-react";
 import { api, del, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
+import { usePermissions } from "@/lib/use-permissions";
 import type { InventoryItem } from "@/lib/types";
 import { Badge, ConfirmDialog, Select, statusTone, useToast } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -25,6 +26,7 @@ const emptyItem = {
 };
 
 export default function InventoryPage() {
+  const { can } = usePermissions();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
@@ -140,14 +142,16 @@ export default function InventoryPage() {
               Inventory Management
             </h1>
           </div>
-          <button
-            type="button"
-            onClick={openAdd}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" />
-            Add Item
-          </button>
+          {can("inventory:write") && (
+            <button
+              type="button"
+              onClick={openAdd}
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" />
+              Add Item
+            </button>
+          )}
         </div>
 
         <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3 md:flex-row md:items-center">
@@ -220,22 +224,29 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          aria-label={`Edit ${item.name}`}
-                          onClick={() => openEdit(item)}
-                          className="rounded-lg p-2 text-muted hover:bg-surface-hover hover:text-foreground"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Delete ${item.name}`}
-                          onClick={() => setDeleting(item)}
-                          className="rounded-lg p-2 text-danger hover:bg-danger-bg"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {can("inventory:write") && (
+                          <button
+                            type="button"
+                            aria-label={`Edit ${item.name}`}
+                            onClick={() => openEdit(item)}
+                            className="rounded-lg p-2 text-muted hover:bg-surface-hover hover:text-foreground"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                        )}
+                        {can("inventory:delete") && (
+                          <button
+                            type="button"
+                            aria-label={`Delete ${item.name}`}
+                            onClick={() => setDeleting(item)}
+                            className="rounded-lg p-2 text-danger hover:bg-danger-bg"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                        {!can("inventory:write") && !can("inventory:delete") && (
+                          <span className="text-xs text-muted">View only</span>
+                        )}
                       </div>
                     </td>
                   </tr>

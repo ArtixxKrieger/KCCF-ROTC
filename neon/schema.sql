@@ -20,8 +20,6 @@ create table if not exists users (
   email text not null unique,
   password_hash text,
   role app_role not null default 'Personnel',
-  department text,
-  rank text,
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -262,3 +260,39 @@ begin
   return v_issuance;
 end;
 $$;
+
+create table if not exists invite_tokens (
+  id uuid primary key default gen_random_uuid(),
+  token text not null unique,
+  role app_role not null default 'Personnel',
+  created_by uuid references users(id) on delete set null,
+  created_by_name text,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '7 days',
+  used_at timestamptz,
+  used_by uuid references users(id) on delete set null,
+  revoked_at timestamptz
+);
+
+create table if not exists audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_id uuid references users(id) on delete set null,
+  actor_name text not null,
+  actor_email text not null,
+  actor_role app_role not null default 'Personnel',
+  action text not null,
+  entity text,
+  entity_id text,
+  details jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists rate_limits (
+  key text primary key,
+  count integer not null default 0,
+  window_start timestamptz not null default now()
+);
+
+create index if not exists invite_tokens_token_idx on invite_tokens(token);
+create index if not exists audit_logs_created_idx on audit_logs(created_at desc);
+create index if not exists audit_logs_actor_idx on audit_logs(actor_id);

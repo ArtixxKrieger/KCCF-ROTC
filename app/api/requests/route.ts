@@ -1,6 +1,8 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 import { text, optionalText, int, oneOf, REQUEST_STATUS } from "@/lib/sanitize";
+import { requirePermission, guardResponse } from "@/lib/guard";
+import { logAudit } from "@/lib/audit";
 
 
 export async function GET() {
@@ -14,6 +16,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const actor = await requirePermission("request:create");
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -39,14 +42,22 @@ export async function POST(request: Request) {
       )
       returning *
     `;
+    await logAudit({
+      actor,
+      action: "request.create",
+      entity: "request",
+      entityId: String((row as { id: string }).id),
+      details: { item_name, quantity, requested_by },
+    });
     return ok(row, { status: 201 });
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }
 
 export async function PATCH(request: Request) {
   try {
+    const actor = await requirePermission("request:review");
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -71,8 +82,15 @@ export async function PATCH(request: Request) {
       returning *
     `;
     if (!row) return fail("Request not found", 404);
+    await logAudit({
+      actor,
+      action: "request.review",
+      entity: "request",
+      entityId: id,
+      details: { status },
+    });
     return ok(row);
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }

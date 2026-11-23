@@ -1,10 +1,13 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 import { text, optionalText, oneOf, CONDITIONS } from "@/lib/sanitize";
+import { requirePermission, guardResponse } from "@/lib/guard";
+import { logAudit } from "@/lib/audit";
 
 
 export async function POST(request: Request) {
   try {
+    const actor = await requirePermission("return:write");
     const body = (await request.json().catch(() => null)) as
       | Record<string, unknown>
       | null;
@@ -28,8 +31,15 @@ export async function POST(request: Request) {
         'Supply Officer'::text
       )
     `;
+    await logAudit({
+      actor,
+      action: "return.create",
+      entity: "issuance",
+      entityId: issuance_id,
+      details: { condition },
+    });
     return ok(row);
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }

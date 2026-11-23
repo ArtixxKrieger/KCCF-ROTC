@@ -1,9 +1,11 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
+import { requirePermission, guardResponse } from "@/lib/guard";
 
 
 export async function GET() {
   try {
+    await requirePermission("report:read");
     const [inventory, transactions, requests, issuances] = await Promise.all([
       sql`select * from inventory order by name`,
       sql`select * from transactions order by created_at desc`,
@@ -12,6 +14,6 @@ export async function GET() {
     ]);
     return ok({ inventory, transactions, requests, issuances });
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }

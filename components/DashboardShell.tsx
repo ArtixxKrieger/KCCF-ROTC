@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { canAccessPage } from "@/lib/rbac";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -33,6 +34,8 @@ const navItems = [
   { href: "/users", label: "User Management", icon: Users },
 ];
 
+type SessionRole = "Admin" | "Supply Officer" | "Personnel";
+
 export function DashboardShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -40,7 +43,7 @@ export function DashboardShell({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"checking" | "online" | "down">("checking");
-  const [me, setMe] = useState<{ name: string; role: string } | null>(null);
+  const [me, setMe] = useState<{ name: string; role: SessionRole } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -62,7 +65,7 @@ export function DashboardShell({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      api<{ name: string; role: string }>("/api/me")
+      api<{ name: string; role: SessionRole }>("/api/me")
         .then(setMe)
         .catch(() => setMe(null));
     }, 0);
@@ -122,7 +125,7 @@ export function DashboardShell({
           <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
             Operations
           </div>
-          {navItems.map((item) => {
+          {navItems.filter((item) => canAccessPage(me?.role, item.href)).map((item) => {
             const Icon = item.icon;
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);

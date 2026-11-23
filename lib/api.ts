@@ -38,6 +38,14 @@ export function patch<T>(path: string, payload: unknown): Promise<T> {
   });
 }
 
-export function del<T>(path: string): Promise<T> {
-  return api<T>(path, { method: "DELETE" });
+export function del<T>(path: string, payload?: unknown): Promise<T> {
+  return api<T>(path, {
+    method: "DELETE",
+    ...(payload === undefined
+      ? {}
+      : {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }),
+  });
 }

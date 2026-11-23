@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { Check, Plus, X } from "lucide-react";
 import { api, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
+import { usePermissions } from "@/lib/use-permissions";
 import type { InventoryItem, RequestItem } from "@/lib/types";
 import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function RequestsPage() {
+  const { can } = usePermissions();
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [filter, setFilter] = useState("Pending");
@@ -68,11 +70,7 @@ export default function RequestsPage() {
     status: "Approved" | "Rejected",
   ) {
     try {
-      await patch("/api/requests", {
-        id: request.id,
-        status,
-        reviewed_by: "Jordan Blake",
-      });
+      await patch("/api/requests", { id: request.id, status });
       setMessage(`Request ${status.toLowerCase()}.`);
       await load();
     } catch (error) {
@@ -164,7 +162,7 @@ export default function RequestsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      {request.status === "Pending" ? (
+                      {request.status === "Pending" && can("request:review") ? (
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
@@ -185,7 +183,7 @@ export default function RequestsPage() {
                         </div>
                       ) : (
                         <div className="text-right text-xs text-muted">
-                          Reviewed
+                          {request.status === "Pending" ? "Awaiting review" : "Reviewed"}
                         </div>
                       )}
                     </td>

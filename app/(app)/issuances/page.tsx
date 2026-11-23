@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { RotateCcw, Send, X } from "lucide-react";
 import { api, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
+import { usePermissions } from "@/lib/use-permissions";
 import type { InventoryItem, Issuance } from "@/lib/types";
 import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function IssuancesPage() {
+  const { can } = usePermissions();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [issuances, setIssuances] = useState<Issuance[]>([]);
   const [tab, setTab] = useState("Issued");
@@ -129,14 +131,16 @@ export default function IssuancesPage() {
               Issuance &amp; Returns
             </h1>
           </div>
-          <button
-            type="button"
-            onClick={() => setIssueOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
-          >
-            <Send className="h-4 w-4" />
-            Issue Equipment
-          </button>
+          {can("issuance:write") && (
+            <button
+              type="button"
+              onClick={() => setIssueOpen(true)}
+              className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
+            >
+              <Send className="h-4 w-4" />
+              Issue Equipment
+            </button>
+          )}
         </div>
 
         {message && (
