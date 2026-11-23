@@ -49,6 +49,49 @@ function toneFor(action: string) {
   return "bg-success-bg text-success";
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  role: "Role",
+  active: "Status",
+  days: "Valid for",
+  name: "Item",
+  category: "Category",
+  quantity: "Qty",
+  source: "Source",
+  reference: "Reference",
+  issued_to: "Issued to",
+  requested_by: "Requested by",
+  item_name: "Item",
+  status: "Status",
+  condition: "Condition",
+  objectKey: "File",
+  invite_id: "Invite",
+  email: "Email",
+  inventory_id: "Inventory",
+};
+
+function formatValue(key: string, value: unknown): string {
+  if (key === "active") return value ? "Activated" : "Deactivated";
+  if (key === "days") {
+    const n = Number(value);
+    return `${n} day${n === 1 ? "" : "s"}`;
+  }
+  if (Array.isArray(value)) return value.join(", ");
+  if (value && typeof value === "object") return "—";
+  const text = String(value);
+  return text.length > 60 ? `${text.slice(0, 60)}…` : text;
+}
+
+function detailEntries(details: Record<string, unknown> | null) {
+  if (!details) return [];
+  return Object.entries(details)
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .map(([key, value]) => ({
+      key,
+      label: FIELD_LABELS[key] ?? key.replaceAll("_", " "),
+      value: formatValue(key, value),
+    }));
+}
+
 const inputClass =
   "rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent";
 
@@ -95,7 +138,10 @@ export default function AuditPage() {
       log.action,
       log.entity ?? "",
       log.entity_id ?? "",
-      log.details ? JSON.stringify(log.details).replaceAll('"', '""') : "",
+      detailEntries(log.details)
+        .map((entry) => `${entry.label}: ${entry.value}`)
+        .join("; ")
+        .replaceAll('"', '""'),
     ]);
     const csv = [header, ...rows]
       .map((row) => row.map((cell) => `"${cell}"`).join(","))
@@ -203,8 +249,28 @@ export default function AuditPage() {
                         </span>
                       )}
                     </td>
-                    <td className="max-w-xs truncate px-5 py-3 text-xs text-muted">
-                      {log.details ? JSON.stringify(log.details) : "—"}
+                    <td className="px-5 py-3">
+                      {(() => {
+                        const entries = detailEntries(log.details);
+                        if (entries.length === 0) {
+                          return <span className="text-xs text-muted">—</span>;
+                        }
+                        return (
+                          <div className="flex max-w-xs flex-wrap gap-1.5">
+                            {entries.map((entry) => (
+                              <span
+                                key={entry.key}
+                                className="inline-flex items-center gap-1 rounded-md border border-border bg-surface-hover px-2 py-0.5 text-[11px]"
+                              >
+                                <span className="text-muted">{entry.label}</span>
+                                <span className="font-semibold text-foreground">
+                                  {entry.value}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}
