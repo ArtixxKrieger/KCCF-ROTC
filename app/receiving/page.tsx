@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { PackageCheck } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { api, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, Transaction } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
 
@@ -19,18 +20,16 @@ export default function ReceivingPage() {
   const [message, setMessage] = useState("");
 
   async function load() {
-    if (!supabase) return;
-    const [inventory, history] = await Promise.all([
-      supabase.from("inventory").select("*").order("name"),
-      supabase
-        .from("transactions")
-        .select("*")
-        .eq("transaction_type", "Receiving")
-        .order("created_at", { ascending: false })
-        .limit(10),
-    ]);
-    setItems((inventory.data ?? []) as InventoryItem[]);
-    setTransactions((history.data ?? []) as Transaction[]);
+    try {
+      const [inventory, history] = await Promise.all([
+        api<InventoryItem[]>("/api/inventory"),
+        api<Transaction[]>("/api/receiving"),
+      ]);
+      setItems(inventory);
+      setTransactions(history);
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -40,21 +39,18 @@ export default function ReceivingPage() {
 
   async function receive(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase) return;
     if (!form.inventoryId) {
       setMessage("Select an inventory item.");
       return;
     }
-
-    const { error } = await supabase.rpc("receive_inventory", {
-      p_inventory_id: form.inventoryId,
-      p_quantity: Number(form.quantity),
-      p_source: form.source,
-      p_reference: form.reference || null,
-      p_notes: form.notes || null,
-    });
-    if (error) setMessage(error.message);
-    else {
+    try {
+      await post("/api/receiving", {
+        inventory_id: form.inventoryId,
+        quantity: Number(form.quantity),
+        source: form.source,
+        reference: form.reference || null,
+        notes: form.notes || null,
+      });
       setMessage("Receipt recorded; inventory updated.");
       setForm({
         inventoryId: "",
@@ -64,12 +60,14 @@ export default function ReceivingPage() {
         notes: "",
       });
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6">
           <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">

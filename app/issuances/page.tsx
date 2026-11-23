@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { RotateCcw, Send, X } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { api, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, Issuance } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
 
@@ -25,16 +26,16 @@ export default function IssuancesPage() {
   const [message, setMessage] = useState("");
 
   async function load() {
-    if (!supabase) return;
-    const [inventoryRes, issuanceRes] = await Promise.all([
-      supabase.from("inventory").select("*").order("name"),
-      supabase
-        .from("issuances")
-        .select("*")
-        .order("issued_at", { ascending: false }),
-    ]);
-    setItems((inventoryRes.data ?? []) as InventoryItem[]);
-    setIssuances((issuanceRes.data ?? []) as Issuance[]);
+    try {
+      const [inventoryRows, issuanceRows] = await Promise.all([
+        api<InventoryItem[]>("/api/inventory"),
+        api<Issuance[]>("/api/issuances"),
+      ]);
+      setItems(inventoryRows);
+      setIssuances(issuanceRows);
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -44,29 +45,30 @@ export default function IssuancesPage() {
 
   async function submitIssue(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase) return;
-    const item = items.find((candidate) => candidate.id === issueForm.inventoryId);
+    const item = items.find(
+      (candidate) => candidate.id === issueForm.inventoryId,
+    );
     if (!item) {
       setMessage("Select an inventory item.");
       return;
     }
-    if (Number(issueForm.quantity) > item.available_quantity) {
+    if (Number(issueForm.quantity) > Number(item.available_quantity)) {
       setMessage(
         `Cannot issue ${issueForm.quantity} units. Only ${item.available_quantity} are available.`,
       );
       return;
     }
-
-    const { error } = await supabase.rpc("issue_inventory", {
-      p_inventory_id: item.id,
-      p_quantity: Number(issueForm.quantity),
-      p_issued_to: issueForm.issuedTo,
-      p_purpose: issueForm.purpose || null,
-      p_due_at: issueForm.dueAt ? new Date(issueForm.dueAt).toISOString() : null,
-      p_reference: issueForm.reference || null,
-    });
-    if (error) setMessage(error.message);
-    else {
+    try {
+      await post("/api/issuances", {
+        inventory_id: item.id,
+        issued_to: issueForm.issuedTo,
+        quantity: Number(issueForm.quantity),
+        purpose: issueForm.purpose || null,
+        due_at: issueForm.dueAt
+          ? new Date(issueForm.dueAt).toISOString()
+          : null,
+        reference: issueForm.reference || null,
+      });
       setMessage("Equipment issued successfully.");
       setIssueOpen(false);
       setIssueForm({
@@ -78,19 +80,20 @@ export default function IssuancesPage() {
         reference: "",
       });
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
   async function submitReturn(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase || !returnOpen) return;
-    const { error } = await supabase.rpc("return_inventory", {
-      p_issuance_id: returnOpen.id,
-      p_condition: returnCondition,
-      p_notes: returnNotes || null,
-    });
-    if (error) setMessage(error.message);
-    else {
+    if (!returnOpen) return;
+    try {
+      await post("/api/returns", {
+        issuance_id: returnOpen.id,
+        condition: returnCondition,
+        notes: returnNotes || null,
+      });
       setMessage(
         returnCondition === "Damaged" || returnCondition === "Missing"
           ? "Return recorded. Damaged or missing items were not added to available stock."
@@ -99,6 +102,8 @@ export default function IssuancesPage() {
       setReturnOpen(null);
       setReturnNotes("");
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
@@ -112,7 +117,7 @@ export default function IssuancesPage() {
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -257,7 +262,7 @@ export default function IssuancesPage() {
                 >
                   <option value="">Select available item</option>
                   {items
-                    .filter((item) => item.available_quantity > 0)
+                    .filter((item) => Number(item.available_quantity) > 0)
                     .map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.name} — {item.available_quantity} available

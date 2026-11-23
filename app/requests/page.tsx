@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Check, Plus, X } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { api, patch, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, RequestItem } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
 
@@ -20,16 +21,16 @@ export default function RequestsPage() {
   const [message, setMessage] = useState("");
 
   async function load() {
-    if (!supabase) return;
-    const [requestRes, inventoryRes] = await Promise.all([
-      supabase
-        .from("requests")
-        .select("*")
-        .order("requested_at", { ascending: false }),
-      supabase.from("inventory").select("*").order("name"),
-    ]);
-    setRequests((requestRes.data ?? []) as RequestItem[]);
-    setItems((inventoryRes.data ?? []) as InventoryItem[]);
+    try {
+      const [requestRows, inventoryRows] = await Promise.all([
+        api<RequestItem[]>("/api/requests"),
+        api<InventoryItem[]>("/api/inventory"),
+      ]);
+      setRequests(requestRows);
+      setItems(inventoryRows);
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -39,26 +40,25 @@ export default function RequestsPage() {
 
   async function createRequest(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase) return;
     const item = items.find((candidate) => candidate.id === form.inventoryId);
     if (!item) {
       setMessage("Select an item.");
       return;
     }
-    const { error } = await supabase.from("requests").insert({
-      requested_by: form.requestedBy,
-      inventory_id: item.id,
-      item_name: item.name,
-      quantity: Number(form.quantity),
-      purpose: form.purpose,
-      status: "Pending",
-    });
-    if (error) setMessage(error.message);
-    else {
+    try {
+      await post("/api/requests", {
+        requested_by: form.requestedBy,
+        inventory_id: item.id,
+        item_name: item.name,
+        quantity: Number(form.quantity),
+        purpose: form.purpose,
+      });
       setMessage("Equipment request submitted.");
       setFormOpen(false);
       setForm({ requestedBy: "", inventoryId: "", quantity: 1, purpose: "" });
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
@@ -66,19 +66,16 @@ export default function RequestsPage() {
     request: RequestItem,
     status: "Approved" | "Rejected",
   ) {
-    if (!supabase) return;
-    const { error } = await supabase
-      .from("requests")
-      .update({
+    try {
+      await patch("/api/requests", {
+        id: request.id,
         status,
-        reviewed_at: new Date().toISOString(),
         reviewed_by: "Jordan Blake",
-      })
-      .eq("id", request.id);
-    if (error) setMessage(error.message);
-    else {
+      });
       setMessage(`Request ${status.toLowerCase()}.`);
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
@@ -88,7 +85,7 @@ export default function RequestsPage() {
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>

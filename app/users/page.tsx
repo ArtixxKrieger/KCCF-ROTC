@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Plus, ShieldCheck, X } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { api, patch, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { AppUser } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
 
@@ -19,13 +20,11 @@ export default function UsersPage() {
   const [message, setMessage] = useState("");
 
   async function load() {
-    if (!supabase) return;
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .order("full_name");
-    if (error) setMessage(error.message);
-    else setUsers((data ?? []) as AppUser[]);
+    try {
+      setUsers(await api<AppUser[]>("/api/users"));
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -35,17 +34,14 @@ export default function UsersPage() {
 
   async function addUser(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase) return;
-    const { error } = await supabase.from("users").insert({
-      full_name: form.fullName,
-      email: form.email,
-      role: form.role,
-      department: form.department || null,
-      rank: form.rank || null,
-      active: true,
-    });
-    if (error) setMessage(error.message);
-    else {
+    try {
+      await post("/api/users", {
+        full_name: form.fullName,
+        email: form.email,
+        role: form.role,
+        department: form.department || null,
+        rank: form.rank || null,
+      });
       setMessage("User record added.");
       setOpen(false);
       setForm({
@@ -56,35 +52,33 @@ export default function UsersPage() {
         rank: "",
       });
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
   async function updateRole(user: AppUser, role: AppUser["role"]) {
-    if (!supabase) return;
-    const { error } = await supabase
-      .from("users")
-      .update({ role })
-      .eq("id", user.id);
-    if (error) setMessage(error.message);
-    else {
+    try {
+      await patch("/api/users", { id: user.id, role });
       setMessage("User role updated.");
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
   async function toggleActive(user: AppUser) {
-    if (!supabase) return;
-    const { error } = await supabase
-      .from("users")
-      .update({ active: !user.active })
-      .eq("id", user.id);
-    if (error) setMessage(error.message);
-    else await load();
+    try {
+      await patch("/api/users", { id: user.id, active: !user.active, role: user.role });
+      await load();
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>

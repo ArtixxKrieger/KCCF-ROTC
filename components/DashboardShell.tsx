@@ -14,8 +14,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -32,33 +31,6 @@ export function DashboardShell({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [displayName, setDisplayName] = useState("Guest Operator");
-  const [displayRole, setDisplayRole] = useState("Sign in required");
-
-  useEffect(() => {
-    const client = supabase;
-    if (!client) return;
-    const timer = window.setTimeout(() => {
-      void client.auth.getUser().then(async ({ data }) => {
-        if (!data.user) return;
-        const { data: profile } = await client
-          .from("users")
-          .select("full_name, role")
-          .eq("auth_user_id", data.user.id)
-          .maybeSingle();
-        setDisplayName(profile?.full_name ?? data.user.email ?? "User");
-        setDisplayRole(profile?.role ?? "Personnel");
-      });
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setDisplayName("Guest Operator");
-    setDisplayRole("Sign in required");
-  }
 
   return (
     <div className="min-h-screen bg-[#f3f5f7]">
@@ -143,31 +115,12 @@ export function DashboardShell({
           </div>
           <div className="ml-auto flex items-center gap-3">
             <div className="hidden text-right sm:block">
-              <div className="text-xs font-bold">{displayName}</div>
-              <div className="text-[10px] text-slate-500">{displayRole}</div>
+              <div className="text-xs font-bold">Jordan Blake</div>
+              <div className="text-[10px] text-slate-500">Supply Officer</div>
             </div>
-            {displayRole === "Sign in required" ? (
-              <Link
-                href="/login"
-                className="rounded-md bg-[#101d35] px-3 py-2 text-xs font-bold text-white"
-              >
-                Sign in
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#101d35] text-xs font-bold text-white"
-                title="Sign out"
-              >
-                {displayName
-                  .split(" ")
-                  .map((part) => part[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </button>
-            )}
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#101d35] text-xs font-bold text-white">
+              JB
+            </div>
           </div>
         </header>
         {children}

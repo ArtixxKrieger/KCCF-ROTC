@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Edit3, Plus, Search, Trash2, X } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { api, del, patch, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
 
@@ -32,13 +33,11 @@ export default function InventoryPage() {
   const [message, setMessage] = useState("");
 
   async function load() {
-    if (!supabase) return;
-    const { data, error } = await supabase
-      .from("inventory")
-      .select("*")
-      .order("name");
-    if (error) setMessage(error.message);
-    else setItems((data ?? []) as InventoryItem[]);
+    try {
+      setItems(await api<InventoryItem[]>("/api/inventory"));
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -74,8 +73,6 @@ export default function InventoryPage() {
 
   async function saveItem(event: React.FormEvent) {
     event.preventDefault();
-    if (!supabase) return;
-
     const payload = {
       ...form,
       quantity: Number(form.quantity),
@@ -83,35 +80,29 @@ export default function InventoryPage() {
       issued_quantity: Number(form.issued_quantity),
       damaged_quantity: Number(form.damaged_quantity),
       min_stock_level: Number(form.min_stock_level),
-      updated_at: new Date().toISOString(),
     };
-
-    const response = editing
-      ? await supabase
-          .from("inventory")
-          .update(payload)
-          .eq("id", editing.id)
-      : await supabase.from("inventory").insert(payload);
-
-    if (response.error) {
-      setMessage(response.error.message);
-      return;
+    try {
+      if (editing) {
+        await patch(`/api/inventory/${editing.id}`, payload);
+      } else {
+        await post("/api/inventory", payload);
+      }
+      setMessage(editing ? "Item updated." : "Item added.");
+      setModalOpen(false);
+      await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
-    setMessage(editing ? "Item updated." : "Item added.");
-    setModalOpen(false);
-    await load();
   }
 
   async function deleteItem(item: InventoryItem) {
-    if (!supabase || !window.confirm(`Delete ${item.name}?`)) return;
-    const { error } = await supabase
-      .from("inventory")
-      .delete()
-      .eq("id", item.id);
-    if (error) setMessage(error.message);
-    else {
+    if (!window.confirm(`Delete ${item.name}?`)) return;
+    try {
+      await del(`/api/inventory/${item.id}`);
       setMessage("Item deleted.");
       await load();
+    } catch (error) {
+      setMessage((error as Error).message);
     }
   }
 
@@ -129,7 +120,7 @@ export default function InventoryPage() {
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -216,7 +207,8 @@ export default function InventoryPage() {
                     <td className="px-5 py-4">
                       <span
                         className={
-                          item.available_quantity <= item.min_stock_level
+                          Number(item.available_quantity) <=
+                          Number(item.min_stock_level)
                             ? "font-bold text-amber-700"
                             : "font-bold text-emerald-700"
                         }
@@ -285,17 +277,19 @@ export default function InventoryPage() {
               </button>
             </div>
             <div className="grid gap-4 p-5 sm:grid-cols-2">
-              {[
-                ["name", "Item name", "text"],
-                ["category", "Category", "text"],
-                ["storage_location", "Storage location", "text"],
-                ["quantity", "Total quantity", "number"],
-                ["available_quantity", "Available quantity", "number"],
-                ["issued_quantity", "Issued quantity", "number"],
-                ["damaged_quantity", "Damaged quantity", "number"],
-                ["min_stock_level", "Minimum stock level", "number"],
-                ["unit", "Unit", "text"],
-              ].map(([key, label, type]) => (
+              {(
+                [
+                  ["name", "Item name", "text"],
+                  ["category", "Category", "text"],
+                  ["storage_location", "Storage location", "text"],
+                  ["quantity", "Total quantity", "number"],
+                  ["available_quantity", "Available quantity", "number"],
+                  ["issued_quantity", "Issued quantity", "number"],
+                  ["damaged_quantity", "Damaged quantity", "number"],
+                  ["min_stock_level", "Minimum stock level", "number"],
+                  ["unit", "Unit", "text"],
+                ] as const
+              ).map(([key, label, type]) => (
                 <label key={key} className="text-xs font-bold text-slate-600">
                   {label}
                   <input

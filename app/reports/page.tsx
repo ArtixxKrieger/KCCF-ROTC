@@ -1,49 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Printer } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { CloudUpload, Download, Printer } from "lucide-react";
+import { api, post } from "@/lib/api";
+import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, Issuance, RequestItem, Transaction } from "@/lib/types";
 import { SetupNotice } from "@/components/SetupNotice";
+
+type ReportExport = {
+  id: string;
+  bucket: string;
+  object_key: string;
+  file_name: string;
+  created_at: string;
+  url: string;
+};
 
 export default function ReportsPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [requests, setRequests] = useState<RequestItem[]>([]);
   const [issuances, setIssuances] = useState<Issuance[]>([]);
+  const [exports, setExports] = useState<ReportExport[]>([]);
   const [generatedAt, setGeneratedAt] = useState("Loading report...");
+  const [message, setMessage] = useState("");
+
+  async function load() {
+    try {
+      const data = await api<{
+        inventory: InventoryItem[];
+        transactions: Transaction[];
+        requests: RequestItem[];
+        issuances: Issuance[];
+      }>("/api/reports");
+      setInventory(data.inventory);
+      setTransactions(data.transactions);
+      setRequests(data.requests);
+      setIssuances(data.issuances);
+      setGeneratedAt(new Date().toLocaleString());
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
+  }
+
+  async function loadExports() {
+    try {
+      setExports(await api<ReportExport[]>("/api/storage"));
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
+  }
 
   useEffect(() => {
-    async function load() {
-      if (!supabase) return;
-      const [inventoryRes, transactionRes, requestRes, issuanceRes] =
-        await Promise.all([
-          supabase.from("inventory").select("*").order("name"),
-          supabase
-            .from("transactions")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("requests")
-            .select("*")
-            .order("requested_at", { ascending: false }),
-          supabase
-            .from("issuances")
-            .select("*")
-            .order("issued_at", { ascending: false }),
-        ]);
-      setInventory((inventoryRes.data ?? []) as InventoryItem[]);
-      setTransactions((transactionRes.data ?? []) as Transaction[]);
-      setRequests((requestRes.data ?? []) as RequestItem[]);
-      setIssuances((issuanceRes.data ?? []) as Issuance[]);
-      setGeneratedAt(new Date().toLocaleString());
-    }
-    void load();
+    const timer = window.setTimeout(() => {
+      void load();
+      void loadExports();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
+
+  async function exportToStorage() {
+    try {
+      await post<ReportExport>("/api/storage", {});
+      setMessage("Report exported to Neon Object Storage.");
+      await loadExports();
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
+  }
 
   return (
     <>
-      {!isSupabaseConfigured && <SetupNotice />}
+      {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="no-print mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -52,14 +80,67 @@ export default function ReportsPage() {
             </div>
             <h1 className="mt-1 text-2xl font-bold text-[#101d35]">Reports</h1>
           </div>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-md bg-[#101d35] px-4 py-2.5 text-sm font-bold text-white"
-          >
-            <Printer className="h-4 w-4" />
-            Print Report
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => void exportToStorage()}
+              className="flex items-center gap-2 rounded-md border border-[#101d35] px-4 py-2.5 text-sm font-bold text-[#101d35]"
+            >
+              <CloudUpload className="h-4 w-4" />
+              Export to Storage
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="flex items-center gap-2 rounded-md bg-[#101d35] px-4 py-2.5 text-sm font-bold text-white"
+            >
+              <Printer className="h-4 w-4" />
+              Print Report
+            </button>
+          </div>
+        </div>
+
+        {message && (
+          <div className="no-print mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm">
+            {message}
+          </div>
+        )}
+
+        <div className="no-print mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 font-bold text-[#101d35]">
+            Object Storage Exports
+          </h2>
+          {exports.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              No exports yet. Use “Export to Storage” to write a JSON report to
+              the Neon <code>assets</code> bucket.
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {exports.map((report) => (
+                <li
+                  key={report.id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div className="text-sm">
+                    <div className="font-bold">{report.file_name}</div>
+                    <div className="text-xs text-slate-400">
+                      {report.bucket}/{report.object_key}
+                    </div>
+                  </div>
+                  <a
+                    href={report.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -68,9 +149,7 @@ export default function ReportsPage() {
               <h2 className="text-lg font-bold text-[#101d35]">
                 Inventory Status Report
               </h2>
-              <p className="text-xs text-slate-500">
-                Generated {generatedAt}
-              </p>
+              <p className="text-xs text-slate-500">Generated {generatedAt}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px] text-left text-sm">
