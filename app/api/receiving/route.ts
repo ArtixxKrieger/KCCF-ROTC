@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
+import { text, optionalText, int } from "@/lib/sanitize";
 
 
 export async function GET() {
@@ -18,9 +19,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { inventory_id, quantity, source, reference, notes } =
-      body as Record<string, unknown>;
+    const body = (await request.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+    const inventory_id = text(body?.inventory_id, 80);
+    const quantity = int(body?.quantity, { min: 1 });
+    const source = text(body?.source, 120);
+    const reference = optionalText(body?.reference, 80);
+    const notes = optionalText(body?.notes, 500);
+
+    if (!inventory_id || quantity < 1 || !source) {
+      return fail("Inventory item, source, and a quantity of at least 1 are required", 400);
+    }
 
     const [row] = await sql`
       select * from receive_inventory(

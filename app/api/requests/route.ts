@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
+import { text, optionalText, int, oneOf, REQUEST_STATUS } from "@/lib/sanitize";
 
 
 export async function GET() {
@@ -13,9 +14,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { requested_by, inventory_id, item_name, quantity, purpose } =
-      body as Record<string, unknown>;
+    const body = (await request.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+    const requested_by = text(body?.requested_by, 120);
+    const inventory_id = optionalText(body?.inventory_id, 80);
+    const item_name = text(body?.item_name, 200);
+    const quantity = int(body?.quantity, { min: 1 });
+    const purpose = optionalText(body?.purpose, 500);
+
+    if (!requested_by || !item_name || quantity < 1) {
+      return fail("Requester, item name, and a quantity of at least 1 are required", 400);
+    }
 
     const [row] = await sql`
       insert into requests (requested_by, inventory_id, item_name, quantity, purpose, status)
@@ -37,8 +47,20 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json();
-    const { id, status, reviewed_by } = body as Record<string, unknown>;
+    const body = (await request.json().catch(() => null)) as
+      | Record<string, unknown>
+      | null;
+    const id = text(body?.id, 80);
+    const rawStatus = body?.status;
+    if (
+      !id ||
+      typeof rawStatus !== "string" ||
+      !["Approved", "Rejected"].includes(rawStatus)
+    ) {
+      return fail("Request id and a status of Approved or Rejected are required", 400);
+    }
+    const status = oneOf(rawStatus, REQUEST_STATUS, "Pending");
+    const reviewed_by = optionalText(body?.reviewed_by, 120);
 
     const [row] = await sql`
       update requests

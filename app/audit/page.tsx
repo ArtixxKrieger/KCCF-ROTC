@@ -122,7 +122,7 @@ export default function AuditPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search source, reference, or officer…"
-              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
+              className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
             />
           </div>
           <Select
@@ -137,13 +137,13 @@ export default function AuditPage() {
             type="date"
             value={from}
             onChange={(event) => setFrom(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           />
           <input
             type="date"
             value={to}
             onChange={(event) => setTo(event.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
           />
         </div>
 

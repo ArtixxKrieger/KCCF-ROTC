@@ -157,10 +157,10 @@ export default function InventoryPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search item, category, or location..."
-              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
+              className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
             />
           </div>
-          <div className="flex rounded-lg border border-border bg-background p-1">
+          <div className="flex rounded-lg border border-border bg-surface p-1">
             {["All", "Armory", "Supplies"].map((tab) => (
               <button
                 key={tab}
@@ -311,7 +311,7 @@ export default function InventoryPage() {
                             : event.target.value,
                       }))
                     }
-                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
+                    className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
                   />
                 </label>
               ))}
@@ -359,7 +359,7 @@ export default function InventoryPage() {
                   value={form.description}
                   onChange={(event) => setForm({ ...form, description: event.target.value })}
                   rows={3}
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
+                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
                 />
               </label>
             </div>

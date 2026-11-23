@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Box,
   Boxes,
@@ -9,6 +9,7 @@ import {
   FileText,
   History,
   LayoutDashboard,
+  LogOut,
   Menu,
   PackageCheck,
   Shield,
@@ -16,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -35,8 +37,10 @@ export function DashboardShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"checking" | "online" | "down">("checking");
+  const [me, setMe] = useState<{ name: string; role: string } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -56,6 +60,32 @@ export function DashboardShell({
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      api<{ name: string; role: string }>("/api/me")
+        .then(setMe)
+        .catch(() => setMe(null));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  async function signOut() {
+    try {
+      await api("/api/logout", { method: "POST" });
+    } finally {
+      router.replace("/login");
+    }
+  }
+
+  const initials =
+    me?.name
+      .split(" ")
+      .map((part) => part[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "—";
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside
@@ -64,7 +94,7 @@ export function DashboardShell({
         }`}
       >
         <div className="flex h-20 items-center border-b border-border px-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+          <div className="glow-accent flex h-10 w-10 items-center justify-center rounded-lg border border-accent/40 bg-accent/20 text-accent">
             <Shield className="h-6 w-6" />
           </div>
           <div className="ml-3">
@@ -101,10 +131,10 @@ export function DashboardShell({
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted hover:bg-surface-hover hover:text-foreground"
+                    ? "glow-accent-soft border-accent/30 bg-accent/15 text-accent"
+                    : "border-transparent text-muted hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -170,13 +200,21 @@ export function DashboardShell({
             <ThemeToggle />
             <div className="hidden text-right lg:block">
               <div className="text-xs font-bold text-foreground">
-                Jordan Blake
+                {me?.name ?? "…"}
               </div>
-              <div className="text-[10px] text-muted">Supply Officer</div>
+              <div className="text-[10px] text-muted">{me?.role ?? ""}</div>
             </div>
             <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground sm:flex">
-              JB
+              {initials}
             </div>
+            <button
+              type="button"
+              aria-label="Sign out"
+              onClick={() => void signOut()}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-muted transition hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </header>
         {children}

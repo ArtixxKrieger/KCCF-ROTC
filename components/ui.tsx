@@ -155,7 +155,7 @@ export function Select({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2 text-left text-sm text-foreground outline-none transition focus:border-accent ${
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm text-foreground outline-none transition focus:border-accent ${
           open ? "border-accent" : ""
         }`}
       >
