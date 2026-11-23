@@ -1,15 +1,68 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #f3f5f7;
-  --foreground: #172033;
+  --background: #eef1f5;
+  --surface: #ffffff;
+  --surface-hover: #f1f4f8;
+  --border: #dbe1e8;
+  --foreground: #152033;
+  --muted: #5b6678;
+  --navy: #0f1d33;
+  --navy-deep: #0a1526;
+  --accent: #c9a227;
+  --accent-foreground: #1a1603;
+  --success: #15803d;
+  --success-bg: #dcfce7;
+  --warning: #b45309;
+  --warning-bg: #fef3c7;
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+  --info: #1d4ed8;
+  --info-bg: #dbeafe;
+}
+
+.dark {
+  --background: #0b111e;
+  --surface: #141c2c;
+  --surface-hover: #1b2538;
+  --border: #263244;
+  --foreground: #e7ecf4;
+  --muted: #97a3b6;
+  --navy: #0f1d33;
+  --navy-deep: #0a1526;
+  --accent: #d4b44c;
+  --accent-foreground: #1a1603;
+  --success: #4ade80;
+  --success-bg: #122a1b;
+  --warning: #fbbf24;
+  --warning-bg: #2a2410;
+  --danger: #f87171;
+  --danger-bg: #2a1515;
+  --info: #60a5fa;
+  --info-bg: #14233d;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
 }
 
 * {
@@ -26,6 +79,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 button,
@@ -35,16 +89,24 @@ textarea {
   font: inherit;
 }
 
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-neutral { background: var(--surface-hover); color: var(--muted); }
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-warning { background: var(--warning-bg); color: var(--warning); }
+.badge-danger  { background: var(--danger-bg);  color: var(--danger); }
+.badge-info    { background: var(--info-bg);    color: var(--info); }
+
 @media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .print-break {
-    break-before: page;
-  }
-
-  body {
-    background: white;
-  }
+  .no-print { display: none !important; }
+  .print-break { break-before: page; }
+  body { background: white; }
 }

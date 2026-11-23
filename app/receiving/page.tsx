@@ -70,14 +70,14 @@ export default function ReceivingPage() {
       {!isNeonConfigured && <SetupNotice />}
       <div className="p-4 md:p-8">
         <div className="mb-6">
-          <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+          <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
             Inbound Logistics
           </div>
-          <h1 className="mt-1 text-2xl font-bold text-[#101d35]">Receiving</h1>
+          <h1 className="mt-1 text-2xl font-bold text-foreground">Receiving</h1>
         </div>
 
         {message && (
-          <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm">
+          <div className="mb-4 rounded-md border border-border bg-surface px-4 py-3 text-sm">
             {message}
           </div>
         )}
@@ -85,21 +85,21 @@ export default function ReceivingPage() {
         <div className="grid gap-6 xl:grid-cols-[1fr_1.4fr]">
           <form
             onSubmit={receive}
-            className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+            className="rounded-lg border border-border bg-surface p-5 shadow-sm"
           >
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-50 text-emerald-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-success-bg text-success">
                 <PackageCheck className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-bold text-[#101d35]">Record Receipt</h2>
-                <p className="text-xs text-slate-500">
+                <h2 className="font-bold text-foreground">Record Receipt</h2>
+                <p className="text-xs text-muted">
                   Purchased, donated, or transferred stock
                 </p>
               </div>
             </div>
             <div className="space-y-4">
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Inventory item
                 <select
                   required
@@ -107,7 +107,7 @@ export default function ReceivingPage() {
                   onChange={(event) =>
                     setForm({ ...form, inventoryId: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 >
                   <option value="">Select item</option>
                   {items.map((item) => (
@@ -117,7 +117,7 @@ export default function ReceivingPage() {
                   ))}
                 </select>
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Quantity
                 <input
                   required
@@ -127,10 +127,10 @@ export default function ReceivingPage() {
                   onChange={(event) =>
                     setForm({ ...form, quantity: Number(event.target.value) })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Source
                 <input
                   required
@@ -139,10 +139,10 @@ export default function ReceivingPage() {
                     setForm({ ...form, source: event.target.value })
                   }
                   placeholder="Supplier or issuing unit"
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Reference number
                 <input
                   value={form.reference}
@@ -150,10 +150,10 @@ export default function ReceivingPage() {
                     setForm({ ...form, reference: event.target.value })
                   }
                   placeholder="PO, donation, or transfer ID"
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Notes
                 <textarea
                   rows={3}
@@ -161,25 +161,25 @@ export default function ReceivingPage() {
                   onChange={(event) =>
                     setForm({ ...form, notes: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
               <button
                 type="submit"
-                className="w-full rounded-md bg-[#101d35] px-4 py-3 text-sm font-bold text-white"
+                className="w-full rounded-md bg-navy px-4 py-3 text-sm font-bold text-white"
               >
                 Record and Update Stock
               </button>
             </div>
           </form>
 
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 px-5 py-4">
-              <h2 className="font-bold text-[#101d35]">Recent Receipts</h2>
+          <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="font-bold text-foreground">Recent Receipts</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px] text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <thead className="bg-surface-hover text-xs uppercase text-muted">
                   <tr>
                     <th className="px-5 py-3">Reference</th>
                     <th className="px-5 py-3">Source</th>
@@ -187,26 +187,26 @@ export default function ReceivingPage() {
                     <th className="px-5 py-3">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {transactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td className="px-5 py-4 font-medium">
                         {transaction.reference_number ?? "—"}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-muted">
                         {transaction.source_destination ?? "—"}
                       </td>
                       <td className="px-5 py-4 font-bold">
                         {transaction.quantity}
                       </td>
-                      <td className="px-5 py-4 text-slate-500">
+                      <td className="px-5 py-4 text-muted">
                         {new Date(transaction.created_at).toLocaleString()}
                       </td>
                     </tr>
                   ))}
                   {transactions.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-5 py-10 text-center text-slate-400">
+                      <td colSpan={4} className="px-5 py-10 text-center text-muted">
                         No receipts recorded
                       </td>
                     </tr>

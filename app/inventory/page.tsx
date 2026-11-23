@@ -5,6 +5,7 @@ import { Edit3, Plus, Search, Trash2, X } from "lucide-react";
 import { api, del, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem } from "@/lib/types";
+import { Badge, ConfirmDialog, statusTone, useToast } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 const emptyItem = {
@@ -30,19 +31,21 @@ export default function InventoryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [form, setForm] = useState(emptyItem);
-  const [message, setMessage] = useState("");
+  const [deleting, setDeleting] = useState<InventoryItem | null>(null);
+  const toast = useToast();
 
   async function load() {
     try {
       setItems(await api<InventoryItem[]>("/api/inventory"));
     } catch (error) {
-      setMessage((error as Error).message);
+      toast((error as Error).message, "error");
     }
   }
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function openAdd() {
@@ -84,25 +87,27 @@ export default function InventoryPage() {
     try {
       if (editing) {
         await patch(`/api/inventory/${editing.id}`, payload);
+        toast("Item updated.");
       } else {
         await post("/api/inventory", payload);
+        toast("Item added.");
       }
-      setMessage(editing ? "Item updated." : "Item added.");
       setModalOpen(false);
       await load();
     } catch (error) {
-      setMessage((error as Error).message);
+      toast((error as Error).message, "error");
     }
   }
 
-  async function deleteItem(item: InventoryItem) {
-    if (!window.confirm(`Delete ${item.name}?`)) return;
+  async function deleteItem() {
+    if (!deleting) return;
     try {
-      await del(`/api/inventory/${item.id}`);
-      setMessage("Item deleted.");
+      await del(`/api/inventory/${deleting.id}`);
+      toast(`Deleted ${deleting.name}.`);
+      setDeleting(null);
       await load();
     } catch (error) {
-      setMessage((error as Error).message);
+      toast((error as Error).message, "error");
     }
   }
 
@@ -124,49 +129,43 @@ export default function InventoryPage() {
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
               Asset Register
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#101d35]">
+            <h1 className="mt-1 text-2xl font-bold text-foreground">
               Inventory Management
             </h1>
           </div>
           <button
             type="button"
             onClick={openAdd}
-            className="flex items-center gap-2 rounded-md bg-[#101d35] px-4 py-2.5 text-sm font-bold text-white"
+            className="flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white shadow hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
             Add Item
           </button>
         </div>
 
-        {message && (
-          <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-            {message}
-          </div>
-        )}
-
-        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 md:flex-row md:items-center">
+        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3 md:flex-row md:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search item, category, or location..."
-              className="w-full rounded-md border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-[#1d3557]"
+              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
             />
           </div>
-          <div className="flex rounded-md border border-slate-200 p-1">
+          <div className="flex rounded-lg border border-border bg-background p-1">
             {["All", "Armory", "Supplies"].map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setFilter(tab)}
-                className={`rounded px-3 py-1.5 text-xs font-bold ${
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
                   filter === tab
-                    ? "bg-[#101d35] text-white"
-                    : "text-slate-500"
+                    ? "bg-navy text-white shadow"
+                    : "text-muted hover:text-foreground"
                 }`}
               >
                 {tab}
@@ -175,10 +174,10 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-surface-hover text-xs uppercase tracking-wide text-muted">
                 <tr>
                   <th className="px-5 py-3">Item</th>
                   <th className="px-5 py-3">Category</th>
@@ -190,37 +189,30 @@ export default function InventoryPage() {
                   <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {visible.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/60">
+                  <tr key={item.id} className="transition hover:bg-surface-hover/60">
                     <td className="px-5 py-4">
-                      <div className="font-bold text-slate-800">{item.name}</div>
-                      <div className="text-xs text-slate-400">
-                        {item.item_type}
-                      </div>
+                      <div className="font-bold text-foreground">{item.name}</div>
+                      <div className="text-xs text-muted">{item.item_type}</div>
                     </td>
-                    <td className="px-5 py-4 text-slate-600">{item.category}</td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {item.storage_location}
-                    </td>
-                    <td className="px-5 py-4 font-bold">{item.quantity}</td>
+                    <td className="px-5 py-4 text-muted">{item.category}</td>
+                    <td className="px-5 py-4 text-muted">{item.storage_location}</td>
+                    <td className="px-5 py-4 font-bold text-foreground">{item.quantity}</td>
                     <td className="px-5 py-4">
                       <span
                         className={
-                          Number(item.available_quantity) <=
-                          Number(item.min_stock_level)
-                            ? "font-bold text-amber-700"
-                            : "font-bold text-emerald-700"
+                          Number(item.available_quantity) <= Number(item.min_stock_level)
+                            ? "font-bold text-warning"
+                            : "font-bold text-success"
                         }
                       >
                         {item.available_quantity}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-slate-600">{item.condition}</td>
+                    <td className="px-5 py-4 text-muted">{item.condition}</td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
-                        {item.status}
-                      </span>
+                      <Badge tone={statusTone(item.status)}>{item.status}</Badge>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-1">
@@ -228,15 +220,15 @@ export default function InventoryPage() {
                           type="button"
                           aria-label={`Edit ${item.name}`}
                           onClick={() => openEdit(item)}
-                          className="rounded p-2 text-slate-500 hover:bg-slate-100"
+                          className="rounded-lg p-2 text-muted hover:bg-surface-hover hover:text-foreground"
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
                           aria-label={`Delete ${item.name}`}
-                          onClick={() => void deleteItem(item)}
-                          className="rounded p-2 text-red-500 hover:bg-red-50"
+                          onClick={() => setDeleting(item)}
+                          className="rounded-lg p-2 text-danger hover:bg-danger-bg"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -246,7 +238,7 @@ export default function InventoryPage() {
                 ))}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-slate-400">
+                    <td colSpan={8} className="px-5 py-12 text-center text-muted">
                       No inventory items found
                     </td>
                   </tr>
@@ -257,21 +249,30 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete inventory item?"
+        message={`This will permanently remove "${deleting?.name}". This action cannot be undone.`}
+        confirmLabel="Delete Item"
+        onConfirm={() => void deleteItem()}
+        onCancel={() => setDeleting(null)}
+      />
+
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <form
             onSubmit={saveItem}
-            className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white shadow-xl"
+            className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-surface shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="font-bold text-[#101d35]">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="font-bold text-foreground">
                 {editing ? "Edit inventory item" : "Add inventory item"}
               </h2>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setModalOpen(false)}
-                className="rounded p-2 text-slate-400 hover:bg-slate-100"
+                className="rounded-lg p-2 text-muted hover:bg-surface-hover"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -290,7 +291,7 @@ export default function InventoryPage() {
                   ["unit", "Unit", "text"],
                 ] as const
               ).map(([key, label, type]) => (
-                <label key={key} className="text-xs font-bold text-slate-600">
+                <label key={key} className="text-xs font-bold text-muted">
                   {label}
                   <input
                     required
@@ -306,31 +307,31 @@ export default function InventoryPage() {
                             : event.target.value,
                       }))
                     }
-                    className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-normal outline-none focus:border-[#1d3557]"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
                   />
                 </label>
               ))}
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Item type
                 <select
                   value={form.item_type}
                   onChange={(event) =>
                     setForm({ ...form, item_type: event.target.value as InventoryItem["item_type"] })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-normal"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
                 >
                   <option>Armory Equipment</option>
                   <option>Other Supplies</option>
                 </select>
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Condition
                 <select
                   value={form.condition}
                   onChange={(event) =>
                     setForm({ ...form, condition: event.target.value as InventoryItem["condition"] })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-normal"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
                 >
                   <option>Excellent</option>
                   <option>Good</option>
@@ -338,14 +339,14 @@ export default function InventoryPage() {
                   <option>Damaged</option>
                 </select>
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Status
                 <select
                   value={form.status}
                   onChange={(event) =>
                     setForm({ ...form, status: event.target.value as InventoryItem["status"] })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-normal"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
                 >
                   <option>Available</option>
                   <option>Issued</option>
@@ -353,29 +354,27 @@ export default function InventoryPage() {
                   <option>Under-maintenance</option>
                 </select>
               </label>
-              <label className="text-xs font-bold text-slate-600 sm:col-span-2">
+              <label className="text-xs font-bold text-muted sm:col-span-2">
                 Description
                 <textarea
                   value={form.description}
-                  onChange={(event) =>
-                    setForm({ ...form, description: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
                   rows={3}
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-normal outline-none focus:border-[#1d3557]"
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none focus:border-accent"
                 />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600"
+                className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-surface-hover"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[#101d35] px-4 py-2 text-sm font-bold text-white"
+                className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
               >
                 {editing ? "Save Changes" : "Add Item"}
               </button>

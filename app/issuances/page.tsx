@@ -121,17 +121,17 @@ export default function IssuancesPage() {
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
               Accountability
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#101d35]">
+            <h1 className="mt-1 text-2xl font-bold text-foreground">
               Issuance &amp; Returns
             </h1>
           </div>
           <button
             type="button"
             onClick={() => setIssueOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-[#101d35] px-4 py-2.5 text-sm font-bold text-white"
+            className="flex items-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-bold text-white"
           >
             <Send className="h-4 w-4" />
             Issue Equipment
@@ -139,12 +139,12 @@ export default function IssuancesPage() {
         </div>
 
         {message && (
-          <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm">
+          <div className="mb-4 rounded-md border border-border bg-surface px-4 py-3 text-sm">
             {message}
           </div>
         )}
 
-        <div className="mb-4 flex gap-1 overflow-x-auto rounded-md border border-slate-200 bg-white p-1">
+        <div className="mb-4 flex gap-1 overflow-x-auto rounded-md border border-border bg-surface p-1">
           {["Issued", "Returned", "Overdue", "Damaged", "Missing", "All"].map(
             (status) => (
               <button
@@ -152,7 +152,7 @@ export default function IssuancesPage() {
                 type="button"
                 onClick={() => setTab(status)}
                 className={`whitespace-nowrap rounded px-3 py-2 text-xs font-bold ${
-                  tab === status ? "bg-[#101d35] text-white" : "text-slate-500"
+                  tab === status ? "bg-navy text-white" : "text-muted"
                 }`}
               >
                 {status}
@@ -161,10 +161,10 @@ export default function IssuancesPage() {
           )}
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-surface-hover text-xs uppercase text-muted">
                 <tr>
                   <th className="px-5 py-3">Reference</th>
                   <th className="px-5 py-3">Item</th>
@@ -175,7 +175,7 @@ export default function IssuancesPage() {
                   <th className="px-5 py-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {visible.map((issuance) => (
                   <tr key={issuance.id}>
                     <td className="px-5 py-4 font-medium">
@@ -184,17 +184,17 @@ export default function IssuancesPage() {
                     <td className="px-5 py-4 font-bold">
                       {itemName(issuance.inventory_id)}
                     </td>
-                    <td className="px-5 py-4 text-slate-600">
+                    <td className="px-5 py-4 text-muted">
                       {issuance.issued_to}
                     </td>
                     <td className="px-5 py-4 font-bold">{issuance.quantity}</td>
-                    <td className="px-5 py-4 text-slate-500">
+                    <td className="px-5 py-4 text-muted">
                       {issuance.due_at
                         ? new Date(issuance.due_at).toLocaleDateString()
                         : "—"}
                     </td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                      <span className="rounded-full bg-surface-hover px-2.5 py-1 text-xs font-bold text-muted">
                         {issuance.status}
                       </span>
                     </td>
@@ -206,14 +206,14 @@ export default function IssuancesPage() {
                           <button
                             type="button"
                             onClick={() => setReturnOpen(issuance)}
-                            className="flex items-center gap-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700"
+                            className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-bold text-foreground"
                           >
                             <RotateCcw className="h-3.5 w-3.5" />
                             Process Return
                           </button>
                         </div>
                       ) : (
-                        <div className="text-right text-xs text-slate-400">
+                        <div className="text-right text-xs text-muted">
                           Closed
                         </div>
                       )}
@@ -222,7 +222,7 @@ export default function IssuancesPage() {
                 ))}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-400">
+                    <td colSpan={7} className="px-5 py-12 text-center text-muted">
                       No issuance records found
                     </td>
                   </tr>
@@ -237,20 +237,20 @@ export default function IssuancesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={submitIssue}
-            className="w-full max-w-lg rounded-lg bg-white shadow-xl"
+            className="w-full max-w-lg rounded-lg bg-surface shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="font-bold text-[#101d35]">Issue equipment</h2>
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="font-bold text-foreground">Issue equipment</h2>
               <button
                 type="button"
                 onClick={() => setIssueOpen(false)}
-                className="rounded p-2 text-slate-400"
+                className="rounded p-2 text-muted"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="grid gap-4 p-5 sm:grid-cols-2">
-              <label className="text-xs font-bold text-slate-600 sm:col-span-2">
+              <label className="text-xs font-bold text-muted sm:col-span-2">
                 Item
                 <select
                   required
@@ -258,7 +258,7 @@ export default function IssuancesPage() {
                   onChange={(event) =>
                     setIssueForm({ ...issueForm, inventoryId: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 >
                   <option value="">Select available item</option>
                   {items
@@ -270,7 +270,7 @@ export default function IssuancesPage() {
                     ))}
                 </select>
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Issued to
                 <input
                   required
@@ -278,10 +278,10 @@ export default function IssuancesPage() {
                   onChange={(event) =>
                     setIssueForm({ ...issueForm, issuedTo: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Quantity
                 <input
                   required
@@ -294,10 +294,10 @@ export default function IssuancesPage() {
                       quantity: Number(event.target.value),
                     })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Due date
                 <input
                   type="date"
@@ -305,20 +305,20 @@ export default function IssuancesPage() {
                   onChange={(event) =>
                     setIssueForm({ ...issueForm, dueAt: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="text-xs font-bold text-slate-600">
+              <label className="text-xs font-bold text-muted">
                 Reference
                 <input
                   value={issueForm.reference}
                   onChange={(event) =>
                     setIssueForm({ ...issueForm, reference: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="text-xs font-bold text-slate-600 sm:col-span-2">
+              <label className="text-xs font-bold text-muted sm:col-span-2">
                 Purpose
                 <textarea
                   rows={3}
@@ -326,21 +326,21 @@ export default function IssuancesPage() {
                   onChange={(event) =>
                     setIssueForm({ ...issueForm, purpose: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               <button
                 type="button"
                 onClick={() => setIssueOpen(false)}
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold"
+                className="rounded-md border border-border px-4 py-2 text-sm font-bold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[#101d35] px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
               >
                 Confirm Issuance
               </button>
@@ -353,31 +353,31 @@ export default function IssuancesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={submitReturn}
-            className="w-full max-w-md rounded-lg bg-white shadow-xl"
+            className="w-full max-w-md rounded-lg bg-surface shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="font-bold text-[#101d35]">Process return</h2>
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="font-bold text-foreground">Process return</h2>
               <button
                 type="button"
                 onClick={() => setReturnOpen(null)}
-                className="rounded p-2 text-slate-400"
+                className="rounded p-2 text-muted"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="space-y-4 p-5">
-              <div className="rounded-md bg-slate-50 p-3 text-sm">
+              <div className="rounded-md bg-surface-hover p-3 text-sm">
                 <span className="font-bold">{itemName(returnOpen.inventory_id)}</span>
-                <span className="ml-2 text-slate-500">
+                <span className="ml-2 text-muted">
                   Qty {returnOpen.quantity}
                 </span>
               </div>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Condition on return
                 <select
                   value={returnCondition}
                   onChange={(event) => setReturnCondition(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 >
                   <option>Excellent</option>
                   <option>Good</option>
@@ -386,27 +386,27 @@ export default function IssuancesPage() {
                   <option>Missing</option>
                 </select>
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Inspection notes
                 <textarea
                   rows={3}
                   value={returnNotes}
                   onChange={(event) => setReturnNotes(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               <button
                 type="button"
                 onClick={() => setReturnOpen(null)}
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold"
+                className="rounded-md border border-border px-4 py-2 text-sm font-bold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[#101d35] px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
               >
                 Complete Return
               </button>

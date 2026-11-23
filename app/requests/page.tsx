@@ -89,17 +89,17 @@ export default function RequestsPage() {
       <div className="p-4 md:p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
               Personnel Support
             </div>
-            <h1 className="mt-1 text-2xl font-bold text-[#101d35]">
+            <h1 className="mt-1 text-2xl font-bold text-foreground">
               Equipment Requests
             </h1>
           </div>
           <button
             type="button"
             onClick={() => setFormOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-[#101d35] px-4 py-2.5 text-sm font-bold text-white"
+            className="flex items-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-bold text-white"
           >
             <Plus className="h-4 w-4" />
             New Request
@@ -107,19 +107,19 @@ export default function RequestsPage() {
         </div>
 
         {message && (
-          <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm">
+          <div className="mb-4 rounded-md border border-border bg-surface px-4 py-3 text-sm">
             {message}
           </div>
         )}
 
-        <div className="mb-4 flex gap-1 rounded-md border border-slate-200 bg-white p-1">
+        <div className="mb-4 flex gap-1 rounded-md border border-border bg-surface p-1">
           {["Pending", "Approved", "Rejected", "All"].map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
               className={`rounded px-3 py-2 text-xs font-bold ${
-                filter === tab ? "bg-[#101d35] text-white" : "text-slate-500"
+                filter === tab ? "bg-navy text-white" : "text-muted"
               }`}
             >
               {tab}
@@ -127,10 +127,10 @@ export default function RequestsPage() {
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-surface-hover text-xs uppercase text-muted">
                 <tr>
                   <th className="px-5 py-3">Requester</th>
                   <th className="px-5 py-3">Item</th>
@@ -140,23 +140,23 @@ export default function RequestsPage() {
                   <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {visible.map((request) => (
                   <tr key={request.id}>
                     <td className="px-5 py-4 font-bold">{request.requested_by}</td>
                     <td className="px-5 py-4">{request.item_name}</td>
                     <td className="px-5 py-4 font-bold">{request.quantity}</td>
-                    <td className="max-w-xs px-5 py-4 text-slate-600">
+                    <td className="max-w-xs px-5 py-4 text-muted">
                       {request.purpose ?? "—"}
                     </td>
                     <td className="px-5 py-4">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-bold ${
                           request.status === "Approved"
-                            ? "bg-emerald-50 text-emerald-700"
+                            ? "bg-success-bg text-success"
                             : request.status === "Rejected"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-amber-50 text-amber-700"
+                              ? "bg-danger-bg text-danger"
+                              : "bg-warning-bg text-warning"
                         }`}
                       >
                         {request.status}
@@ -183,7 +183,7 @@ export default function RequestsPage() {
                           </button>
                         </div>
                       ) : (
-                        <div className="text-right text-xs text-slate-400">
+                        <div className="text-right text-xs text-muted">
                           Reviewed
                         </div>
                       )}
@@ -192,7 +192,7 @@ export default function RequestsPage() {
                 ))}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-slate-400">
+                    <td colSpan={6} className="px-5 py-12 text-center text-muted">
                       No requests in this category
                     </td>
                   </tr>
@@ -207,20 +207,20 @@ export default function RequestsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={createRequest}
-            className="w-full max-w-lg rounded-lg bg-white shadow-xl"
+            className="w-full max-w-lg rounded-lg bg-surface shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-              <h2 className="font-bold text-[#101d35]">New equipment request</h2>
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="font-bold text-foreground">New equipment request</h2>
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="rounded p-2 text-slate-400"
+                className="rounded p-2 text-muted"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="space-y-4 p-5">
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Requested by
                 <input
                   required
@@ -228,10 +228,10 @@ export default function RequestsPage() {
                   onChange={(event) =>
                     setForm({ ...form, requestedBy: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Item
                 <select
                   required
@@ -239,7 +239,7 @@ export default function RequestsPage() {
                   onChange={(event) =>
                     setForm({ ...form, inventoryId: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 >
                   <option value="">Select item</option>
                   {items.map((item) => (
@@ -249,7 +249,7 @@ export default function RequestsPage() {
                   ))}
                 </select>
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Quantity
                 <input
                   required
@@ -259,10 +259,10 @@ export default function RequestsPage() {
                   onChange={(event) =>
                     setForm({ ...form, quantity: Number(event.target.value) })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
-              <label className="block text-xs font-bold text-slate-600">
+              <label className="block text-xs font-bold text-muted">
                 Purpose
                 <textarea
                   required
@@ -271,21 +271,21 @@ export default function RequestsPage() {
                   onChange={(event) =>
                     setForm({ ...form, purpose: event.target.value })
                   }
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm font-normal"
+                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
                 />
               </label>
             </div>
-            <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold"
+                className="rounded-md border border-border px-4 py-2 text-sm font-bold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[#101d35] px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
               >
                 Submit Request
               </button>
