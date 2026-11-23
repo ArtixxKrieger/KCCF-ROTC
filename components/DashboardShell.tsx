@@ -36,17 +36,19 @@ export function DashboardShell({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-deep text-white shadow-2xl transition-transform md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-surface transition-transform md:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-20 items-center border-b border-white/10 px-5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-accent-foreground shadow">
+        <div className="flex h-20 items-center border-b border-border px-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
             <Shield className="h-6 w-6" />
           </div>
           <div className="ml-3">
-            <div className="text-sm font-bold tracking-wide">KCCF COMMAND</div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
+            <div className="text-sm font-bold tracking-wide text-foreground">
+              KCCF COMMAND
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted">
               Logistics System
             </div>
           </div>
@@ -54,14 +56,14 @@ export function DashboardShell({
             type="button"
             aria-label="Close navigation"
             onClick={() => setOpen(false)}
-            className="ml-auto rounded p-2 text-slate-300 hover:bg-white/10 md:hidden"
+            className="ml-auto rounded-lg p-2 text-muted hover:bg-surface-hover md:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
-          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+          <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
             Operations
           </div>
           {navItems.map((item) => {
@@ -75,8 +77,8 @@ export function DashboardShell({
                 onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "bg-accent text-accent-foreground shadow"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted hover:bg-surface-hover hover:text-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -86,10 +88,10 @@ export function DashboardShell({
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
-          <div className="text-xs text-slate-400">System status</div>
-          <div className="mt-1 flex items-center gap-2 text-sm">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+        <div className="border-t border-border p-4">
+          <div className="text-xs text-muted">System status</div>
+          <div className="mt-1 flex items-center gap-2 text-sm text-foreground">
+            <span className="h-2 w-2 rounded-full bg-success" />
             Operations Ready
           </div>
         </div>
@@ -110,7 +112,7 @@ export function DashboardShell({
             type="button"
             aria-label="Open navigation"
             onClick={() => setOpen(true)}
-            className="mr-3 rounded-md border border-border p-2 text-muted md:hidden"
+            className="mr-3 rounded-lg border border-border p-2 text-muted md:hidden"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -130,7 +132,7 @@ export function DashboardShell({
               </div>
               <div className="text-[10px] text-muted">Supply Officer</div>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-xs font-bold text-white ring-2 ring-accent">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               JB
             </div>
           </div>

@@ -3,16 +3,16 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #eef1f5;
+  --background: #fafafa;
   --surface: #ffffff;
-  --surface-hover: #f1f4f8;
-  --border: #dbe1e8;
-  --foreground: #152033;
-  --muted: #5b6678;
-  --navy: #0f1d33;
-  --navy-deep: #0a1526;
-  --accent: #c9a227;
-  --accent-foreground: #1a1603;
+  --surface-hover: #f4f4f5;
+  --border: #e4e4e7;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --primary: #18181b;
+  --primary-foreground: #ffffff;
+  --accent: #f59e0b;
+  --accent-foreground: #1c1403;
   --success: #15803d;
   --success-bg: #dcfce7;
   --warning: #b45309;
@@ -24,16 +24,16 @@
 }
 
 .dark {
-  --background: #0b111e;
-  --surface: #141c2c;
-  --surface-hover: #1b2538;
-  --border: #263244;
-  --foreground: #e7ecf4;
-  --muted: #97a3b6;
-  --navy: #0f1d33;
-  --navy-deep: #0a1526;
-  --accent: #d4b44c;
-  --accent-foreground: #1a1603;
+  --background: #09090b;
+  --surface: #17171a;
+  --surface-hover: #232327;
+  --border: #2a2a2f;
+  --foreground: #f4f4f5;
+  --muted: #a1a1aa;
+  --primary: #f4f4f5;
+  --primary-foreground: #17171a;
+  --accent: #fbbf24;
+  --accent-foreground: #231804;
   --success: #4ade80;
   --success-bg: #122a1b;
   --warning: #fbbf24;
@@ -51,8 +51,8 @@
   --color-border: var(--border);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-navy: var(--navy);
-  --color-navy-deep: var(--navy-deep);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);

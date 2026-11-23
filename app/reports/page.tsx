@@ -92,7 +92,7 @@ export default function ReportsPage() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="flex items-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-bold text-white"
+              className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
             >
               <Printer className="h-4 w-4" />
               Print Report

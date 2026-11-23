@@ -65,7 +65,7 @@ export function ThemeToggle() {
           onClick={() => choose(value)}
           className={`flex h-8 w-8 items-center justify-center rounded-md transition ${
             theme === value
-              ? "bg-navy text-accent"
+              ? "bg-primary text-primary-foreground"
               : "text-muted hover:text-foreground"
           }`}
         >

@@ -166,7 +166,7 @@ export default function ReceivingPage() {
               </label>
               <button
                 type="submit"
-                className="w-full rounded-md bg-navy px-4 py-3 text-sm font-bold text-white"
+                className="w-full rounded-md bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
               >
                 Record and Update Stock
               </button>

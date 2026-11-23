@@ -99,7 +99,7 @@ export default function RequestsPage() {
           <button
             type="button"
             onClick={() => setFormOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-bold text-white"
+            className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
             New Request
@@ -119,7 +119,7 @@ export default function RequestsPage() {
               type="button"
               onClick={() => setFilter(tab)}
               className={`rounded px-3 py-2 text-xs font-bold ${
-                filter === tab ? "bg-navy text-white" : "text-muted"
+                filter === tab ? "bg-primary text-primary-foreground" : "text-muted"
               }`}
             >
               {tab}
@@ -285,7 +285,7 @@ export default function RequestsPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 Submit Request
               </button>

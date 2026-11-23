@@ -131,7 +131,7 @@ export default function IssuancesPage() {
           <button
             type="button"
             onClick={() => setIssueOpen(true)}
-            className="flex items-center gap-2 rounded-md bg-navy px-4 py-2.5 text-sm font-bold text-white"
+            className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
           >
             <Send className="h-4 w-4" />
             Issue Equipment
@@ -152,7 +152,7 @@ export default function IssuancesPage() {
                 type="button"
                 onClick={() => setTab(status)}
                 className={`whitespace-nowrap rounded px-3 py-2 text-xs font-bold ${
-                  tab === status ? "bg-navy text-white" : "text-muted"
+                  tab === status ? "bg-primary text-primary-foreground" : "text-muted"
                 }`}
               >
                 {status}
@@ -340,7 +340,7 @@ export default function IssuancesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 Confirm Issuance
               </button>
@@ -406,7 +406,7 @@ export default function IssuancesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-navy px-4 py-2 text-sm font-bold text-white"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 Complete Return
               </button>

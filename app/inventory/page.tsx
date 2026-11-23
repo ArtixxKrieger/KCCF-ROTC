@@ -139,7 +139,7 @@ export default function InventoryPage() {
           <button
             type="button"
             onClick={openAdd}
-            className="flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white shadow hover:opacity-90"
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:opacity-90"
           >
             <Plus className="h-4 w-4" />
             Add Item
@@ -164,7 +164,7 @@ export default function InventoryPage() {
                 onClick={() => setFilter(tab)}
                 className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
                   filter === tab
-                    ? "bg-navy text-white shadow"
+                    ? "bg-primary text-primary-foreground shadow"
                     : "text-muted hover:text-foreground"
                 }`}
               >
@@ -374,7 +374,7 @@ export default function InventoryPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
               >
                 {editing ? "Save Changes" : "Add Item"}
               </button>
