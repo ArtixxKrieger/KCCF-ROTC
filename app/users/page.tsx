@@ -5,6 +5,7 @@ import { Plus, ShieldCheck, X } from "lucide-react";
 import { api, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { AppUser } from "@/lib/types";
+import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function UsersPage() {
@@ -134,20 +135,16 @@ export default function UsersPage() {
                       {user.rank ?? "—"}
                     </td>
                     <td className="px-5 py-4">
-                      <select
-                        value={user.role}
-                        onChange={(event) =>
-                          void updateRole(
-                            user,
-                            event.target.value as AppUser["role"],
-                          )
-                        }
-                        className="rounded-md border border-border px-2 py-1.5 text-xs font-bold"
-                      >
-                        <option>Admin</option>
-                        <option>Supply Officer</option>
-                        <option>Personnel</option>
-                      </select>
+                      <div className="w-44">
+                        <Select
+                          value={user.role}
+                          onChange={(value) => void updateRole(user, value as AppUser["role"])}
+                          options={["Admin", "Supply Officer", "Personnel"].map((role) => ({
+                            value: role,
+                            label: role,
+                          }))}
+                        />
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <span
@@ -227,20 +224,16 @@ export default function UsersPage() {
               </label>
               <label className="text-xs font-bold text-muted">
                 Role
-                <select
-                  value={form.role}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      role: event.target.value as AppUser["role"],
-                    })
-                  }
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                >
-                  <option>Admin</option>
-                  <option>Supply Officer</option>
-                  <option>Personnel</option>
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.role}
+                    onChange={(value) => setForm({ ...form, role: value as AppUser["role"] })}
+                    options={["Admin", "Supply Officer", "Personnel"].map((role) => ({
+                      value: role,
+                      label: role,
+                    }))}
+                  />
+                </div>
               </label>
               <label className="text-xs font-bold text-muted">
                 Department

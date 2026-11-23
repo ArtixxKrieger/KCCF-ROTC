@@ -14,7 +14,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
@@ -32,6 +32,25 @@ export function DashboardShell({
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<"checking" | "online" | "down">("checking");
+
+  useEffect(() => {
+    let active = true;
+    async function check() {
+      try {
+        const res = await fetch("/api/dashboard", { cache: "no-store" });
+        if (active) setStatus(res.ok ? "online" : "down");
+      } catch {
+        if (active) setStatus("down");
+      }
+    }
+    void check();
+    const timer = window.setInterval(check, 30000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -91,8 +110,20 @@ export function DashboardShell({
         <div className="border-t border-border p-4">
           <div className="text-xs text-muted">System status</div>
           <div className="mt-1 flex items-center gap-2 text-sm text-foreground">
-            <span className="h-2 w-2 rounded-full bg-success" />
-            Operations Ready
+            <span
+              className={`h-2 w-2 rounded-full ${
+                status === "online"
+                  ? "bg-success"
+                  : status === "down"
+                    ? "bg-danger"
+                    : "bg-muted animate-pulse"
+              }`}
+            />
+            {status === "online"
+              ? "Server Online"
+              : status === "down"
+                ? "Server Down"
+                : "Connecting…"}
           </div>
         </div>
       </aside>

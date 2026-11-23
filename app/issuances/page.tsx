@@ -5,6 +5,7 @@ import { RotateCcw, Send, X } from "lucide-react";
 import { api, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, Issuance } from "@/lib/types";
+import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function IssuancesPage() {
@@ -252,23 +253,19 @@ export default function IssuancesPage() {
             <div className="grid gap-4 p-5 sm:grid-cols-2">
               <label className="text-xs font-bold text-muted sm:col-span-2">
                 Item
-                <select
-                  required
-                  value={issueForm.inventoryId}
-                  onChange={(event) =>
-                    setIssueForm({ ...issueForm, inventoryId: event.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                >
-                  <option value="">Select available item</option>
-                  {items
-                    .filter((item) => Number(item.available_quantity) > 0)
-                    .map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} — {item.available_quantity} available
-                      </option>
-                    ))}
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={issueForm.inventoryId}
+                    onChange={(value) => setIssueForm({ ...issueForm, inventoryId: value })}
+                    placeholder="Select available item"
+                    options={items
+                      .filter((item) => Number(item.available_quantity) > 0)
+                      .map((item) => ({
+                        value: item.id,
+                        label: `${item.name} — ${item.available_quantity} available`,
+                      }))}
+                  />
+                </div>
               </label>
               <label className="text-xs font-bold text-muted">
                 Issued to
@@ -374,17 +371,15 @@ export default function IssuancesPage() {
               </div>
               <label className="block text-xs font-bold text-muted">
                 Condition on return
-                <select
-                  value={returnCondition}
-                  onChange={(event) => setReturnCondition(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                >
-                  <option>Excellent</option>
-                  <option>Good</option>
-                  <option>Fair</option>
-                  <option>Damaged</option>
-                  <option>Missing</option>
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={returnCondition}
+                    onChange={setReturnCondition}
+                    options={["Excellent", "Good", "Fair", "Damaged", "Missing"].map(
+                      (condition) => ({ value: condition, label: condition }),
+                    )}
+                  />
+                </div>
               </label>
               <label className="block text-xs font-bold text-muted">
                 Inspection notes

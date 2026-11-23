@@ -5,7 +5,7 @@ import { Edit3, Plus, Search, Trash2, X } from "lucide-react";
 import { api, del, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem } from "@/lib/types";
-import { Badge, ConfirmDialog, statusTone, useToast } from "@/components/ui";
+import { Badge, ConfirmDialog, Select, statusTone, useToast } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 const emptyItem = {
@@ -313,46 +313,41 @@ export default function InventoryPage() {
               ))}
               <label className="text-xs font-bold text-muted">
                 Item type
-                <select
-                  value={form.item_type}
-                  onChange={(event) =>
-                    setForm({ ...form, item_type: event.target.value as InventoryItem["item_type"] })
-                  }
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                >
-                  <option>Armory Equipment</option>
-                  <option>Other Supplies</option>
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.item_type}
+                    onChange={(value) => setForm({ ...form, item_type: value as InventoryItem["item_type"] })}
+                    options={["Armory Equipment", "Other Supplies"].map((option) => ({
+                      value: option,
+                      label: option,
+                    }))}
+                  />
+                </div>
               </label>
               <label className="text-xs font-bold text-muted">
                 Condition
-                <select
-                  value={form.condition}
-                  onChange={(event) =>
-                    setForm({ ...form, condition: event.target.value as InventoryItem["condition"] })
-                  }
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                >
-                  <option>Excellent</option>
-                  <option>Good</option>
-                  <option>Fair</option>
-                  <option>Damaged</option>
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.condition}
+                    onChange={(value) => setForm({ ...form, condition: value as InventoryItem["condition"] })}
+                    options={["Excellent", "Good", "Fair", "Damaged"].map((option) => ({
+                      value: option,
+                      label: option,
+                    }))}
+                  />
+                </div>
               </label>
               <label className="text-xs font-bold text-muted">
                 Status
-                <select
-                  value={form.status}
-                  onChange={(event) =>
-                    setForm({ ...form, status: event.target.value as InventoryItem["status"] })
-                  }
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground"
-                >
-                  <option>Available</option>
-                  <option>Issued</option>
-                  <option>Damaged</option>
-                  <option>Under-maintenance</option>
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.status}
+                    onChange={(value) => setForm({ ...form, status: value as InventoryItem["status"] })}
+                    options={["Available", "Issued", "Damaged", "Under-maintenance"].map(
+                      (option) => ({ value: option, label: option }),
+                    )}
+                  />
+                </div>
               </label>
               <label className="text-xs font-bold text-muted sm:col-span-2">
                 Description

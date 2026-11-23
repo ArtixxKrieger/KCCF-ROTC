@@ -5,6 +5,7 @@ import { PackageCheck } from "lucide-react";
 import { api, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, Transaction } from "@/lib/types";
+import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function ReceivingPage() {
@@ -101,21 +102,17 @@ export default function ReceivingPage() {
             <div className="space-y-4">
               <label className="block text-xs font-bold text-muted">
                 Inventory item
-                <select
-                  required
-                  value={form.inventoryId}
-                  onChange={(event) =>
-                    setForm({ ...form, inventoryId: event.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                >
-                  <option value="">Select item</option>
-                  {items.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} — {item.available_quantity} available
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.inventoryId}
+                    onChange={(value) => setForm({ ...form, inventoryId: value })}
+                    placeholder="Select item"
+                    options={items.map((item) => ({
+                      value: item.id,
+                      label: `${item.name} — ${item.available_quantity} available`,
+                    }))}
+                  />
+                </div>
               </label>
               <label className="block text-xs font-bold text-muted">
                 Quantity

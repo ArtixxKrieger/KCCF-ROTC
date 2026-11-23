@@ -70,7 +70,6 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<Stats>(emptyStats);
   const [loading, setLoading] = useState(true);
-  const [liveStatus, setLiveStatus] = useState<string>("connecting");
 
   const clientRef = useRef<ReturnType<typeof createRealtimeClient> | null>(null);
   const subRef = useRef<{
@@ -117,10 +116,7 @@ export default function DashboardPage() {
 
     async function subscribe() {
       const url = process.env.NEXT_PUBLIC_NEON_REALTIME_URL;
-      if (!url) {
-        setLiveStatus("offline");
-        return;
-      }
+      if (!url) return;
       try {
         const sealed = await api<SealedLiveQuery<LiveRow>>("/api/realtime", {
           method: "POST",
@@ -130,10 +126,8 @@ export default function DashboardPage() {
         clientRef.current = client;
         const sub = client.subscribe(sealed);
         subRef.current = sub;
-        setLiveStatus(sub.getSnapshot().status);
 
         sub.onChange((snapshot) => {
-          setLiveStatus(snapshot.status);
           if (snapshot.data) {
             const rows = snapshot.data as LiveRow[];
             setItems(rows);
@@ -142,12 +136,10 @@ export default function DashboardPage() {
         });
 
         sub.onStateChange((state) => {
-          setLiveStatus(state.status);
           if (state.status === "stale") void refreshSealed();
         });
       } catch (error) {
         console.error("Realtime subscription failed", error);
-        setLiveStatus("error");
       }
     }
 
@@ -184,22 +176,6 @@ export default function DashboardPage() {
             <h1 className="mt-1 text-2xl font-bold text-foreground">
               Logistics Dashboard
             </h1>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-muted">
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${
-                liveStatus === "live"
-                  ? "bg-success"
-                  : liveStatus === "error"
-                    ? "bg-danger"
-                    : "bg-warning"
-              }`}
-            />
-            {liveStatus === "live"
-              ? "Live · Neon Realtime"
-              : liveStatus === "error"
-                ? "Realtime error"
-                : "Connecting…"}
           </div>
         </div>
 

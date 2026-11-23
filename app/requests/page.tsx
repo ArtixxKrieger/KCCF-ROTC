@@ -5,6 +5,7 @@ import { Check, Plus, X } from "lucide-react";
 import { api, patch, post } from "@/lib/api";
 import { isNeonConfigured } from "@/lib/env";
 import type { InventoryItem, RequestItem } from "@/lib/types";
+import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
 
 export default function RequestsPage() {
@@ -233,21 +234,14 @@ export default function RequestsPage() {
               </label>
               <label className="block text-xs font-bold text-muted">
                 Item
-                <select
-                  required
-                  value={form.inventoryId}
-                  onChange={(event) =>
-                    setForm({ ...form, inventoryId: event.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                >
-                  <option value="">Select item</option>
-                  {items.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-1">
+                  <Select
+                    value={form.inventoryId}
+                    onChange={(value) => setForm({ ...form, inventoryId: value })}
+                    placeholder="Select item"
+                    options={items.map((item) => ({ value: item.id, label: item.name }))}
+                  />
+                </div>
               </label>
               <label className="block text-xs font-bold text-muted">
                 Quantity
