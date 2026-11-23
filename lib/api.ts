@@ -5,7 +5,11 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     | null;
 
   if (res.status === 401) {
-    if (typeof window !== "undefined") {
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login" &&
+      window.location.pathname !== "/"
+    ) {
       window.location.replace("/login");
     }
     throw new Error("Unauthorized");
