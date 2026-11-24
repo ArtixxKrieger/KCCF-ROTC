@@ -196,25 +196,26 @@ export function DashboardShell({
               Command &amp; Control Center
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <div className="hidden items-center gap-3 md:flex">
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-2 md:flex">
               <CommandPalette />
               <NotificationBell />
             </div>
+            <div className="mx-1 hidden h-6 w-px bg-border md:block" />
             <Link
               href="/settings"
-              className="ml-1 flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-surface-hover"
-              title="Account settings"
+              aria-label="Account settings"
+              className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 transition hover:bg-surface-hover"
             >
-              <span className="hidden text-right lg:block">
-                <span className="block text-xs font-bold text-foreground">
+              <span className="hidden text-right leading-tight lg:block">
+                <span className="block max-w-[10rem] truncate text-[12px] font-bold text-foreground">
                   {me?.name ?? "…"}
                 </span>
-                <span className="block text-[10px] text-muted">
+                <span className="block text-[10px] font-medium text-muted">
                   {me?.role ?? ""}
                 </span>
               </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-[11px] font-bold text-accent ring-1 ring-accent/30">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-[11px] font-bold text-accent ring-1 ring-accent/30">
                 {initials}
               </span>
             </Link>
@@ -222,7 +223,7 @@ export function DashboardShell({
               type="button"
               aria-label="Sign out"
               onClick={() => void signOut()}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-muted transition hover:text-foreground"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted transition hover:bg-surface-hover hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />
             </button>
