@@ -60,6 +60,7 @@ const PAGE_ACCESS: Record<string, readonly Role[]> = {
   "/reports": ["Admin", "Supply Officer"],
   "/audit": ["Admin", "Supply Officer"],
   "/users": ["Admin"],
+  "/settings": ["Admin", "Supply Officer", "Personnel"],
 };
 
 export function canAccessPage(role: Role | undefined, pathname: string): boolean {

@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   PackageCheck,
+  Settings,
   Shield,
   Users,
   X,
@@ -21,7 +22,6 @@ import { api } from "@/lib/api";
 import { canAccessPage } from "@/lib/rbac";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationBell } from "@/components/NotificationBell";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -32,6 +32,7 @@ const navItems = [
   { href: "/reports", label: "Reports", icon: FileText },
   { href: "/audit", label: "Audit Log", icon: History },
   { href: "/users", label: "User Management", icon: Users },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 type SessionRole = "Admin" | "Supply Officer" | "Personnel";
@@ -200,16 +201,23 @@ export function DashboardShell({
               <CommandPalette />
               <NotificationBell />
             </div>
-            <ThemeToggle />
-            <div className="hidden text-right lg:block">
-              <div className="text-xs font-bold text-foreground">
-                {me?.name ?? "…"}
-              </div>
-              <div className="text-[10px] text-muted">{me?.role ?? ""}</div>
-            </div>
-            <div className="hidden h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground sm:flex">
-              {initials}
-            </div>
+            <Link
+              href="/settings"
+              className="ml-1 flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-surface-hover"
+              title="Account settings"
+            >
+              <span className="hidden text-right lg:block">
+                <span className="block text-xs font-bold text-foreground">
+                  {me?.name ?? "…"}
+                </span>
+                <span className="block text-[10px] text-muted">
+                  {me?.role ?? ""}
+                </span>
+              </span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-[11px] font-bold text-accent ring-1 ring-accent/30">
+                {initials}
+              </span>
+            </Link>
             <button
               type="button"
               aria-label="Sign out"
