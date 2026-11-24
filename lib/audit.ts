@@ -1,24 +1,8 @@
 import { sql } from "@/lib/db";
+import type { AuditAction } from "@/lib/audit-actions";
 import type { SessionUser } from "@/lib/session";
 
-export type AuditAction =
-  | "user.create"
-  | "user.update"
-  | "account.create"
-  | "account.update"
-  | "account.password"
-  | "account.password_failed"
-  | "login.success"
-  | "login.failed"
-  | "inventory.create"
-  | "inventory.update"
-  | "inventory.delete"
-  | "receiving.create"
-  | "issuance.create"
-  | "return.create"
-  | "request.create"
-  | "request.review"
-  | "report.export";
+export type { AuditAction };
 
 type AuditInput = {
   actor: SessionUser | null;

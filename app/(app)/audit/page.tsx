@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 import { api } from "@/lib/api";
+import { AUDIT_ACTIONS, auditActionLabel } from "@/lib/audit-actions";
 import { isNeonConfigured } from "@/lib/env";
 import { Select } from "@/components/ui";
 import { SetupNotice } from "@/components/SetupNotice";
@@ -19,34 +20,26 @@ type AuditLog = {
   created_at: string;
 };
 
-const ACTION_GROUPS = [
-  "All",
-  "login.success",
-  "login.failed",
-  "account.create",
-  "user.update",
-  "invite.create",
-  "invite.revoke",
-  "inventory.create",
-  "inventory.update",
-  "inventory.delete",
-  "receiving.create",
-  "issuance.create",
-  "return.create",
-  "request.create",
-  "request.review",
-  "report.export",
+const ACTION_OPTIONS = [
+  { value: "All", label: "All actions" },
+  ...AUDIT_ACTIONS.map(({ key, label }) => ({ value: key, label })),
 ];
 
 function toneFor(action: string) {
-  if (action.startsWith("login.failed")) return "bg-danger-bg text-danger";
-  if (action.startsWith("inventory.delete") || action.startsWith("invite.revoke"))
+  if (action.endsWith(".failed") || action.endsWith("_failed"))
     return "bg-danger-bg text-danger";
-  if (action.startsWith("login") || action.startsWith("account"))
+  if (action === "inventory.delete" || action === "user.delete")
+    return "bg-danger-bg text-danger";
+  if (action.startsWith("login.") || action.startsWith("account."))
     return "bg-info-bg text-info";
-  if (action.startsWith("inventory") || action.startsWith("user"))
+  if (action.startsWith("inventory.") || action.startsWith("user."))
     return "bg-warning-bg text-warning";
   return "bg-success-bg text-success";
+}
+
+function entityLabel(entity: string | null) {
+  if (!entity) return "—";
+  return entity.charAt(0).toUpperCase() + entity.slice(1);
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -115,7 +108,14 @@ export default function AuditPage() {
     return logs.filter((log) => {
       if (actionFilter !== "All" && log.action !== actionFilter) return false;
       if (search.trim()) {
-        const haystack = [log.actor_name, log.actor_email, log.action, log.entity, log.entity_id]
+        const haystack = [
+          log.actor_name,
+          log.actor_email,
+          log.action,
+          auditActionLabel(log.action),
+          log.entity,
+          log.entity_id,
+        ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -135,8 +135,8 @@ export default function AuditPage() {
       log.actor_name,
       log.actor_email,
       log.actor_role,
-      log.action,
-      log.entity ?? "",
+      auditActionLabel(log.action),
+      entityLabel(log.entity),
       log.entity_id ?? "",
       detailEntries(log.details)
         .map((entry) => `${entry.label}: ${entry.value}`)
@@ -192,7 +192,7 @@ export default function AuditPage() {
           <Select
             value={actionFilter}
             onChange={setActionFilter}
-            options={ACTION_GROUPS.map((action) => ({ value: action, label: action }))}
+            options={ACTION_OPTIONS}
           />
           <input
             type="date"
@@ -236,13 +236,14 @@ export default function AuditPage() {
                     </td>
                     <td className="px-5 py-3">
                       <span
+                        title={log.action}
                         className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneFor(log.action)}`}
                       >
-                        {log.action}
+                        {auditActionLabel(log.action)}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-muted">
-                      {log.entity ?? "—"}
+                      {entityLabel(log.entity)}
                       {log.entity_id && (
                         <span className="block truncate text-xs">
                           {log.entity_id.slice(0, 8)}…
