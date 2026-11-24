@@ -219,17 +219,23 @@ export default function RequestsPage() {
               </button>
             </div>
             <div className="space-y-4 p-5">
-              <label className="block text-xs font-bold text-muted">
-                Requested by
-                <input
-                  required
-                  value={form.requestedBy}
-                  onChange={(event) =>
-                    setForm({ ...form, requestedBy: event.target.value })
-                  }
-                  className="mt-1 w-full rounded-md border border-border px-3 py-2.5 text-sm font-normal"
-                />
-              </label>
+              {can("request:review") ? (
+                <label className="block text-xs font-bold text-muted">
+                  Requested by
+                  <input
+                    required
+                    value={form.requestedBy}
+                    onChange={(event) =>
+                      setForm({ ...form, requestedBy: event.target.value })
+                    }
+                    className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2.5 text-sm font-normal text-foreground"
+                  />
+                </label>
+              ) : (
+                <p className="rounded-lg border border-border bg-surface px-3 py-2.5 text-xs text-muted">
+                  Filed under your own account. No name to type.
+                </p>
+              )}
               <label className="block text-xs font-bold text-muted">
                 Item
                 <div className="mt-1">

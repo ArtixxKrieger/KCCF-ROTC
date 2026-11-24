@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
-import { canAccessPage } from "@/lib/rbac";
+import { canAccessPage, homeForRole } from "@/lib/rbac";
 
 const PUBLIC_PATHS = new Set(["/", "/login"]);
 const PUBLIC_API = new Set(["/api/login", "/api/logout", "/api/signup"]);
@@ -26,14 +26,14 @@ export async function middleware(request: NextRequest) {
 
   if (user && PUBLIC_PATHS.has(pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = homeForRole(user.role);
     url.search = "";
     return NextResponse.redirect(url);
   }
 
   if (user && !canAccessPage(user.role, pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = homeForRole(user.role);
     url.search = "";
     return NextResponse.redirect(url);
   }

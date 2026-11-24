@@ -14,10 +14,11 @@ import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   try {
+    await requirePermission("inventory:read");
     const rows = await sql`select * from inventory order by name`;
     return ok(rows);
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }
 

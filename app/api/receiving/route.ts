@@ -7,6 +7,7 @@ import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   try {
+    await requirePermission("receiving:read");
     const rows = await sql`
       select * from transactions
       where transaction_type = 'Receiving'
@@ -15,7 +16,7 @@ export async function GET() {
     `;
     return ok(rows);
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }
 

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogIn, ShieldCheck, Ticket } from "lucide-react";
 import { api } from "@/lib/api";
 
 type Mode = "signin" | "signup";
@@ -11,10 +10,9 @@ type Mode = "signin" | "signup";
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
-  const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [next, setNext] = useState("/dashboard");
@@ -29,8 +27,8 @@ export default function LoginPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  function switchMode(next: Mode) {
-    setMode(next);
+  function switchMode(nextMode: Mode) {
+    setMode(nextMode);
     setError("");
   }
 
@@ -39,20 +37,21 @@ export default function LoginPage() {
     setError("");
     setBusy(true);
     try {
-      if (mode === "signin") {
-        await api("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-      } else {
-        await api("/api/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, full_name: fullName, password }),
-        });
-      }
-      router.replace(next);
+      const account =
+        mode === "signin"
+          ? await api<{ role: string }>("/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            })
+          : await api<{ role: string }>("/api/signup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ full_name: fullName, email, password }),
+            });
+
+      const home = account?.role === "Personnel" ? "/inventory" : "/dashboard";
+      router.replace(next === "/dashboard" ? home : next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -60,146 +59,214 @@ export default function LoginPage() {
     }
   }
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-muted focus:border-accent";
+  const field =
+    "mt-2 block w-full rounded-lg border border-border bg-background px-3.5 py-3 text-[15px] text-foreground outline-none transition placeholder:text-muted/70 focus:border-accent";
+  const label = "block text-[13px] font-semibold text-foreground";
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <div className="glow-accent mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-accent/40 bg-accent/20 text-accent">
-            <ShieldCheck className="h-7 w-7" />
+    <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+      {/* Brand side — desktop only */}
+      <aside className="relative hidden overflow-hidden border-r border-border bg-surface lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-accent/40 bg-accent/15">
+            <ShieldMark />
           </div>
-          <h1 className="mt-4 text-2xl font-black tracking-tight text-foreground">
-            KCCF Command
+          <div className="leading-tight">
+            <div className="text-[15px] font-bold tracking-tight text-foreground">
+              KCCF Command
+            </div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted">
+              Logistics System
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-md">
+          <h1 className="text-[clamp(2.4rem,3.4vw,3.4rem)] font-black leading-[1.02] tracking-[-0.03em] text-foreground">
+            Every item.
+            <br />
+            Every hand.
+            <br />
+            <span className="text-accent">On record.</span>
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            {mode === "signin"
-              ? "Sign in to the logistics system"
-              : "Create your account with an invite token"}
+          <p className="mt-6 text-[15px] leading-relaxed text-muted">
+            Stock levels, issuances and returns for the corps — with the
+            guard rails built into the database, not bolted on afterwards.
           </p>
         </div>
 
-        <div className="mb-4 flex rounded-lg border border-border bg-surface p-1">
-          <button
-            type="button"
-            onClick={() => switchMode("signin")}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-              mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted"
-            }`}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("signup")}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition ${
-              mode === "signup" ? "bg-primary text-primary-foreground" : "text-muted"
-            }`}
-          >
-            Create account
-          </button>
-        </div>
+        <dl className="grid grid-cols-3 gap-6 border-t border-border pt-8">
+          <Fact term="Backend" detail="Neon Postgres" />
+          <Fact term="Audit" detail="Every action" />
+          <Fact term="Issuing" detail="Stock-guarded" />
+        </dl>
+      </aside>
 
-        <form
-          onSubmit={onSubmit}
-          className="rounded-xl border border-border bg-surface p-6 shadow-2xl"
-        >
-          {mode === "signup" && (
-            <>
-              <label className="block">
-                <span className="text-xs font-semibold text-muted">
-                  Invite token
-                </span>
-                <div className="relative">
-                  <Ticket className="absolute left-3 top-1/2 mt-0.5 h-4 w-4 -translate-y-1/2 text-accent" />
-                  <input
-                    required
-                    value={token}
-                    onChange={(event) => setToken(event.target.value.toUpperCase())}
-                    placeholder="Enter invite token"
-                    className={`${inputClass} pl-9 font-mono tracking-wider`}
-                  />
-                </div>
-                <span className="mt-1 block text-[11px] text-muted">
-                  Ask your Supply Officer or Admin for an authorized token.
-                </span>
-              </label>
+      {/* Form side */}
+      <main className="flex items-center justify-center px-5 py-12 sm:px-8">
+        <div className="w-full max-w-[26rem]">
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-accent/40 bg-accent/15">
+              <ShieldMark />
+            </div>
+            <div className="leading-tight">
+              <div className="text-[15px] font-bold tracking-tight text-foreground">
+                KCCF Command
+              </div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-muted">
+                Logistics System
+              </div>
+            </div>
+          </div>
 
-              <label className="mt-4 block">
-                <span className="text-xs font-semibold text-muted">Full name</span>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            {mode === "signin" ? "Sign in" : "Create your account"}
+          </h2>
+          <p className="mt-1.5 text-sm text-muted">
+            {mode === "signin"
+              ? "Use the email and password on your record."
+              : "New accounts start with read-only access to inventory."}
+          </p>
+
+          <form onSubmit={onSubmit} className="mt-7">
+            {mode === "signup" && (
+              <div className="mb-5">
+                <label className={label} htmlFor="full-name">
+                  Full name
+                </label>
                 <input
+                  id="full-name"
                   required
+                  autoComplete="name"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Enter your full name"
-                  className={inputClass}
+                  placeholder="As it appears on your record"
+                  className={field}
                 />
+              </div>
+            )}
+
+            <div className="mb-5">
+              <label className={label} htmlFor="email">
+                Email
               </label>
-
-            </>
-          )}
-
-          {mode === "signin" && (
-            <label className="block">
-              <span className="text-xs font-semibold text-muted">Email</span>
               <input
+                id="email"
                 type="email"
-                autoComplete="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Enter your email"
-                className={inputClass}
+                placeholder="name@school.example"
+                className={field}
               />
-            </label>
-          )}
-
-          <label className="mt-4 block">
-            <span className="text-xs font-semibold text-muted">
-              Password
-              {mode === "signup" && (
-                <span className="font-normal"> (min 8 characters)</span>
-              )}
-            </span>
-            <input
-              type="password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              required
-              minLength={mode === "signup" ? 8 : undefined}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              className={inputClass}
-            />
-          </label>
-
-          {error && (
-            <div className="mt-4 rounded-lg border border-danger/40 bg-danger-bg px-3 py-2 text-sm font-medium text-danger">
-              {error}
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
-          >
-            <LogIn className="h-4 w-4" />
-            {busy
-              ? "Working…"
-              : mode === "signin"
-                ? "Sign in"
-                : "Create account"}
-          </button>
-        </form>
+            <div>
+              <label className={label} htmlFor="password">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                minLength={mode === "signup" ? 8 : undefined}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                className={field}
+              />
+            </div>
 
-        <p className="mt-6 text-center text-xs text-muted">
-          <Link href="/" className="hover:text-foreground">
-            ← Back to home
-          </Link>
-        </p>
-      </div>
+            {error && (
+              <p
+                role="alert"
+                className="mt-5 rounded-lg border border-danger/40 bg-danger-bg px-3.5 py-2.5 text-sm font-medium text-danger"
+              >
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-7 w-full rounded-lg bg-accent px-4 py-3 text-[15px] font-bold text-accent-foreground transition hover:brightness-110 active:translate-y-px disabled:opacity-60"
+            >
+              {busy
+                ? "Working…"
+                : mode === "signin"
+                  ? "Sign in"
+                  : "Create account"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-sm text-muted">
+            {mode === "signin" ? (
+              <>
+                No account yet?{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("signup")}
+                  className="font-semibold text-foreground underline decoration-accent decoration-2 underline-offset-4 transition hover:text-accent"
+                >
+                  Create one
+                </button>
+              </>
+            ) : (
+              <>
+                Already registered?{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("signin")}
+                  className="font-semibold text-foreground underline decoration-accent decoration-2 underline-offset-4 transition hover:text-accent"
+                >
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+
+          <p className="mt-8 border-t border-border pt-6 text-xs text-muted">
+            <Link href="/" className="transition hover:text-foreground">
+              ← Back to home
+            </Link>
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function ShieldMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+      <path
+        d="M12 2.6l7.4 2.9v6c0 4.4-3.1 8.2-7.4 9.9-4.3-1.7-7.4-5.5-7.4-9.9v-6L12 2.6z"
+        fill="none"
+        stroke="var(--accent)"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.9 12.1l2.2 2.2 4-4.4"
+        fill="none"
+        stroke="var(--accent)"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function Fact({ term, detail }: { term: string; detail: string }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+        {term}
+      </dt>
+      <dd className="mt-1 text-[13px] font-semibold text-foreground">{detail}</dd>
     </div>
   );
 }

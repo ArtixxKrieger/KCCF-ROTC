@@ -7,10 +7,11 @@ import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   try {
+    await requirePermission("issuance:read");
     const rows = await sql`select * from issuances order by issued_at desc`;
     return ok(rows);
   } catch (error) {
-    return fail((error as Error).message, 500);
+    return guardResponse(error) ?? fail((error as Error).message, 500);
   }
 }
 

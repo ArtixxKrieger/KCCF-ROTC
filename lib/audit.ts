@@ -4,8 +4,6 @@ import type { SessionUser } from "@/lib/session";
 export type AuditAction =
   | "user.create"
   | "user.update"
-  | "invite.create"
-  | "invite.revoke"
   | "account.create"
   | "login.success"
   | "login.failed"

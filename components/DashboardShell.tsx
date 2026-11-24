@@ -49,7 +49,7 @@ export function DashboardShell({
     let active = true;
     async function check() {
       try {
-        const res = await fetch("/api/dashboard", { cache: "no-store" });
+        const res = await fetch("/api/health", { cache: "no-store" });
         if (active) setStatus(res.ok ? "online" : "down");
       } catch {
         if (active) setStatus("down");
